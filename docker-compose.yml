@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # Embedded local disk storage is used by default.
+  # This container provides optional standalone Qdrant service.
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: agni_qdrant
+    ports:
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
+    volumes:
+      - ./data/qdrant_storage:/qdrant/storage
+    restart: unless-stopped
+
+  # Hardened Code Execution Sandbox image
+  sandbox_runner:
+    image: python:3.11-slim
+    container_name: agni_sandbox
+    network_mode: none
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    command: ["python", "-c", "print('AGNI-AI Sandbox Container Initialized')"]

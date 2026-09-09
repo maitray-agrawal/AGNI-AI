@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Environment & Secrets
+.env
+*.pem
+*.key
+
+# Data & Storage
+data/qdrant_storage/*
+!data/qdrant_storage/.gitkeep
+outputs/*.docx
+outputs/*.xlsx
+outputs/*.pptx
+outputs/*.db
+!outputs/.gitkeep
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
