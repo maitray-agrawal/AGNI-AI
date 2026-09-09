@@ -21,7 +21,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = ({ trace, isLoading
     planner: 'Autonomous Task Planner',
     router: 'Capability Model Router',
     executor: 'Tool Execution & Model Synthesis',
-    verifier: '7-Point Domain Verifier',
+    verifier: '8-Point Domain Verifier',
     finalizer: 'Deliverable Packaging & Audit Finalizer',
   };
 

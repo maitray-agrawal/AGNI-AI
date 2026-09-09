@@ -10,10 +10,10 @@ EMBEDDING_DIM = 384
 
 
 class LocalEmbedder:
-    """Local, deterministic 384-dimensional semantic embedding generator.
+    """Lightweight mathematical vectorizer: deterministic 384-dimensional term and n-gram hashing vectorizer.
     
-    Zero external dependencies, 100% offline, guaranteed instant execution.
-    Projects semantic token clusters and n-grams into a normalized dense space.
+    Zero external dependencies, offline mathematical vectorization for air-gapped CPU execution.
+    Projects semantic token clusters and n-grams into a normalized dense space for cosine retrieval.
     """
 
     def __init__(self, dim: int = EMBEDDING_DIM):

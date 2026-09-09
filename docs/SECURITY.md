@@ -28,23 +28,26 @@ AGNI-AI enforces multi-layered local boundaries:
   - Zero access to host environment variables, secrets, or parent directories.
 - In process-fallback mode (when Docker daemon is absent), the system invokes subprocesses with restricted environment (`env={}`), explicit socket-creation monkey-patch blocking, and execution timeouts.
 
-### 2.3 Grounded Verification (7-Point Guardrail)
+### 2.3 Grounded Verification (8-Point Guardrail)
 Before any approval note or deliverable is finalized:
-1. **Equipment ID Check**: Validates that target asset tag matches engineering conventions (e.g. `P-204`).
-2. **Date Extraction Check**: Validates valid inspection timestamp.
-3. **Findings Extraction Check**: Verifies non-empty quantitative measurements (e.g. wall thickness, vibration).
-4. **Citation Check**: Verifies that recommendation directly references an indexed local standard or SOP page.
-5. **Recommendation Formulation**: Confirms engineering disposition (Acceptable / Monitor / Repair / Replace).
-6. **Deliverable Check**: Validates that the generated `.docx` file was written, is non-zero, and is structurally valid XML.
-7. **Air-Gap Verification**: Validates that zero external network egress occurred during task execution.
+1. **Model Output Validity**: Validates non-empty model generation (>10 characters).
+2. **Execution Integrity**: Confirms zero unhandled runtime or tool exceptions.
+3. **Equipment Tag Check**: Validates that target asset tag matches engineering conventions (e.g. `P-204`).
+4. **Quantitative Findings Check**: Verifies quantitative NDT measurements (e.g. wall thickness in mm, vibration in mm/s).
+5. **Standard Citation Check**: Verifies that recommendations cite indexed industrial standards (API 570, ISO 10816-3).
+6. **Recommendation Formulation**: Confirms actionable engineering maintenance disposition.
+7. **Deliverable Check**: Validates that the generated `.docx` file was written, is non-zero (>1,000 bytes), and is structurally valid XML.
+8. **Air-Gap Telemetry Check**: Validates via real OS socket inspection (`psutil`) that all active application sockets remain on localhost loopback with zero external connections during task execution.
 
 ---
 
 ## 3. Observability & Telemetry (No Faked Status)
 
 AGNI-AI distinguishes strictly between:
-- **Network Policy**: Enforced loopback binding and disabled outbound routes.
-- **Network Observation**: Live socket scanning using OS-level inspection (`psutil.net_connections()`), identifying PID, protocol, local IP, and remote IP. Any remote IP outside `127.0.0.1`, `::1`, or `0.0.0.0` triggers an immediate security alert.
+- **Network Policy (Enforced)**: Enforced loopback binding (`127.0.0.1`) and sandbox `network=none` container mode.
+- **Sandbox Defense (Blocked)**: Outbound socket creation in sandbox processes is intercepted by a runtime monkey-patch raising `PermissionError`.
+- **Network Observation (Observed)**: Live socket scanning using OS-level inspection (`psutil.net_connections()`), identifying PID, protocol, local IP, and remote IP. Any remote IP outside `127.0.0.1`, `::1`, or `0.0.0.0` triggers an immediate security alert.
+- **Inferred Scope (Inferred)**: Socket observation confirms that no outbound network connections were open at scan time; this empirical observation is combined with enforced localhost binding for multi-layered defense.
 - **Application Audit Ledger**: SQLite database (`outputs/audit.db`) storing an immutable record of every run:
   - `task_id` (UUID)
   - `timestamp_utc`
@@ -53,4 +56,4 @@ AGNI-AI distinguishes strictly between:
   - `tools_executed`
   - `retrieved_chunks` (with exact document and page references)
   - `deliverable_hashes` (SHA-256 digest of generated DOCX/XLSX)
-  - `security_verdict` (100% Local / Flagged)
+  - `security_verdict` (Localhost Verified / Flagged)

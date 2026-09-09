@@ -182,7 +182,7 @@ export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
                   {latestResponse.verification.status === 'passed' ? (
                     <>
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>7-POINT VERIFICATION PASSED</span>
+                      <span>8-POINT VERIFICATION PASSED</span>
                     </>
                   ) : (
                     <>

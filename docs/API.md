@@ -86,7 +86,7 @@ Submits a task to the LangGraph autonomous agent.
   "task_id": "task_20260909_001",
   "status": "completed",
   "selected_model": "llama3.1:8b",
-  "summary": "Completed inspection analysis for Equipment P-204 with 7-point verification passed.",
+  "summary": "Completed inspection analysis for Equipment P-204 with 8-point verification passed.",
   "verification": {
     "status": "passed",
     "checks": [

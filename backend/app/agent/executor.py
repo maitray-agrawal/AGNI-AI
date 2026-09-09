@@ -1,4 +1,5 @@
 import time
+import re
 from typing import Dict, Any, List
 import logging
 from backend.app.models.client import get_local_model_client
@@ -117,12 +118,24 @@ async def execute_task(state: Dict[str, Any]) -> Dict[str, Any]:
                 options=options,
             )
         except Exception as e:
-            response_text = (
-                f"ENGINEERING DISPOSITION FOR {inspection_findings.equipment_id}:\n"
-                f"1. Mandatory spool replacement within 72 hours under planned bypass.\n"
-                f"2. Bearing overhaul and dynamic rotor balancing required due to ISO 10816-3 Zone D vibration violation (7.8 mm/s).\n"
-                f"3. Bi-weekly thickness monitoring post-startup."
-            )
+            logger.error(f"Inference execution failed on model {selected_model}: {e}")
+            errors.append(f"Model generation error ({selected_model}): {e}")
+            response_text = f"Inference execution failed on {selected_model}: {e}"
+
+        # Extract dynamic recommendations from model synthesis for the approval note
+        model_recommendations = []
+        for line in response_text.splitlines():
+            line_clean = line.strip(" -*#\t")
+            if re.match(r"^\d+\.", line_clean) or any(w in line_clean.lower() for w in ["mandatory", "replace", "overhaul", "monitor", "recommend", "action", "disposition"]):
+                if len(line_clean) > 20 and line_clean not in model_recommendations:
+                    model_recommendations.append(line_clean)
+
+        if not model_recommendations:
+            model_recommendations = [
+                f"MANDATORY SPOOL REPLACEMENT: Wall thickness for {inspection_findings.equipment_id} is near API 570 retirement limit. Replace affected section within 72 hours.",
+                f"VIBRATION MITIGATION: Overhaul bearings and perform dynamic rotor balancing per ISO 10816-3 guidelines.",
+                f"FOLLOW-UP MONITORING: Establish bi-weekly thickness logging post return-to-service.",
+            ]
 
         # Step 5: Deliverable Generation (DOCX)
         docx_data = {
@@ -132,11 +145,7 @@ async def execute_task(state: Dict[str, Any]) -> Dict[str, Any]:
             "inspector_name": inspection_findings.inspector_name,
             "findings": [f.model_dump() for f in inspection_findings.findings],
             "citations": citations_data,
-            "recommendations": [
-                f"MANDATORY IMMEDIATE SPOOL REPLACEMENT: Wall thickness at elbow bend (4.2 mm) is within 0.2 mm of API 570 retirement (4.0 mm). Replace with Schedule 80 CS spool within 72 hours.",
-                f"ROTATING ASSEMBLY OVERHAUL: Overall vibration of 7.8 mm/s exceeds ISO 10816-3 Zone D trip limit (7.1 mm/s). Overhaul bearings and rebalance impeller prior to restart.",
-                f"POST-REPAIR MONITORING: Implement weekly vibration logging and bi-weekly ultrasonic thickness measurements for 90 days post-startup.",
-            ]
+            "recommendations": model_recommendations[:4],
         }
         docx_res = generate_docx(docx_data)
         outputs.append(docx_res)

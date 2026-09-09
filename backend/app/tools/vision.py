@@ -165,10 +165,17 @@ class VisionAnalyzer:
                 status="warning",
             ))
 
-        observations = [
-            "Localized thinning detected at pump discharge elbow bend due to high-temperature sulfidic corrosion.",
-            "Elevated vibration at 1x RPM and 2x blade pass frequency indicates impeller unbalance and inboard bearing wear.",
-        ]
+        observations = []
+        for line in text.splitlines():
+            line_str = line.strip(" -*#\t")
+            if any(k in line_str.lower() for k in ["corrosion", "thinning", "vibration", "unbalance", "defect", "leakage", "wear", "anomaly", "crack", "degradation", "critical"]):
+                if len(line_str) > 15 and line_str not in observations:
+                    observations.append(line_str)
+        if not observations:
+            observations = [
+                f"Inspection record analyzed for asset {equipment_id} in {plant_area}.",
+                f"Evaluated {len(findings)} technical parameter(s) against engineering limits.",
+            ]
 
         return StructuredInspectionReport(
             document_type="inspection_report",

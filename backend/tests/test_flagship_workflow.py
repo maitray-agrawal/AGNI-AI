@@ -38,15 +38,15 @@ async def test_flagship_inspection_workflow():
     assert Path(docx_file["path"]).exists()
     assert docx_file["size_bytes"] > 5000
 
-    # Verify 7-point Domain Verification
+    # Verify 8-point Domain Verification
     verification = result.get("verification", {})
-    print(f"\n[7-Point Domain Verification Summary]:")
+    print(f"\n[8-Point Domain Verification Summary]:")
     for chk in verification.get("checks", []):
         mark = "[PASS]" if chk["passed"] else "[FAIL]"
         print(f"  {mark} {chk['name']}: {chk.get('details')}")
 
     assert verification.get("status") == "passed"
-    assert len(verification.get("checks", [])) >= 5
+    assert len(verification.get("checks", [])) == 8
 
     # Verify Trace Sequence
     trace_steps = [t["step"] for t in result.get("trace", [])]

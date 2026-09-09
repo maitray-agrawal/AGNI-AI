@@ -14,10 +14,10 @@ async def generate_plan(task: str, files: List[str]) -> List[Dict[str, Any]]:
         return [
             {"step_id": 1, "name": "Document Inspection", "description": "Inspect and parse input inspection document/PDF"},
             {"step_id": 2, "name": "Multimodal Finding Extraction", "description": "Extract critical quantitative findings (wall thickness, vibration, anomaly)"},
-            {"step_id": 3, "name": "Local RAG Retrieval", "description": "Query local Qdrant knowledge base for applicable MRPL SOPs / API 570 criteria"},
+            {"step_id": 3, "name": "Local RAG Retrieval", "description": "Query local Qdrant knowledge base for applicable industrial SOPs / API 570 criteria"},
             {"step_id": 4, "name": "Engineering Reasoning", "description": "Synthesize findings against maintenance limits and formulate action recommendation"},
-            {"step_id": 5, "name": "7-Point Verification", "description": "Validate equipment tag, dates, citations, and air-gap integrity"},
-            {"step_id": 6, "name": "Deliverable Generation", "description": "Generate official MRPL Inspection Approval Note DOCX file"},
+            {"step_id": 5, "name": "8-Point Verification", "description": "Validate equipment tag, dates, citations, and air-gap integrity"},
+            {"step_id": 6, "name": "Deliverable Generation", "description": "Generate official Inspection Approval Note DOCX file"},
         ]
     elif any(k in task_lower for k in ["calculate", "percentage", "python", "code", "reduction", "wall thickness"]):
         return [

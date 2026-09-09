@@ -17,7 +17,7 @@ Critical refining infrastructure handles highly confidential industrial assets:
 
 These assets cannot be transmitted to commercial public cloud LLM APIs due to commercial confidentiality and national critical infrastructure cybersecurity mandates.
 
-**AGNI-AI** is a sovereign workbench engineered to run 100% on local enterprise infrastructure. It combines open-weight multimodal models (`llama3.1:8b`, `qwen2.5-coder:7b`, `moondream`), LangGraph autonomous multi-step orchestration, embedded local vector RAG (Qdrant), a hardened code sandbox, and an automated 7-point domain verification engine that produces real engineering deliverables (`.docx` Approval Notes).
+**AGNI-AI** is a sovereign workbench engineered to run on local enterprise infrastructure. It combines open-weight multimodal models (`llama3.1:8b`, `qwen2.5-coder:7b`, `moondream`), LangGraph autonomous multi-step orchestration, embedded local vector RAG (Qdrant), a hardened code sandbox, and an automated 8-point domain verification engine that produces real engineering deliverables (`.docx` Approval Notes).
 
 ---
 
@@ -87,14 +87,14 @@ These assets cannot be transmitted to commercial public cloud LLM APIs due to co
 
 - **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, Lucide React
 - **Backend**: Python 3.11, FastAPI, Pydantic v2, Uvicorn
-- **Agent Orchestrator**: LangGraph (StateGraph DAG state machine)
+- **Agent Orchestrator**: LangGraph (StateGraph state machine)
 - **Local Model Runtime**: Ollama (bound strictly to `127.0.0.1:11434`)
 - **Open-Weight Models**:
   - `llama3.1:8b` (Planning, Reasoning, Approval Synthesis)
   - `qwen2.5-coder:7b` (Deterministic Calculations, Technical Python Scripts)
   - `moondream` (Multimodal Vision, Scanned Inspection extraction, P&ID visual analysis)
   - `mistral:latest` (Fast General Instruction fallback)
-- **Vector Database**: Embedded Qdrant (`qdrant-client` local disk storage at `./data/qdrant_storage`)
+- **Vector Database**: Embedded Qdrant (`qdrant-client` local disk storage at `./data/qdrant_storage`) with deterministic 384-dim semantic hashing vectorizer (optimized for air-gapped CPU execution without PyTorch/CUDA runtime overhead)
 - **Document Processing**: PyMuPDF (`fitz`), `python-docx`, `openpyxl`
 - **Security & Telemetry**: `psutil` OS socket inspection, Python socket monkey-patch isolation, SQLite audit trail
 
@@ -176,10 +176,10 @@ Open `http://localhost:5173` in your browser.
    - **Router**: Assigns `llama3.1:8b` (reasoning) & `moondream` (vision)
    - **Document Parser**: Extracts pages & renders high-res bitmaps
    - **Vision Analyzer**: Detects wall thickness (4.2 mm) & vibration (7.8 mm/s)
-   - **Local RAG**: Retrieves MRPL CDU Piping Manual (Page 14) & ISO 10816 SOP (Page 8)
-   - **Reasoning**: Formulates repair disposition & mandatory 72-hr spool replacement
-   - **DOCX Generator**: Writes `outputs/MRPL_Inspection_Approval_Note_P204.docx`
-   - **7-Point Verifier**: Validates tag, dates, measurements, and air-gap integrity
+    - **Local RAG**: Retrieves synthesized CDU Piping Manual (Page 14) & ISO 10816 SOP (Page 8)
+    - **Reasoning**: Formulates repair disposition & mandatory 72-hr spool replacement
+    - **DOCX Generator**: Writes `outputs/MRPL_Inspection_Approval_Note_P204.docx`
+    - **8-Point Verifier**: Validates tag, dates, measurements, and air-gap integrity
 5. Click **Download Deliverable** to review the official Word document.
 
 ### Flagship 2: Technical Engineering Calculation & Code Sandbox
@@ -196,21 +196,21 @@ python scripts/demo_run.py
 
 ---
 
-## 7. Security & Air-Gap Compliance
+## 7. Security & Air-Gap Compliance Model
 
-AGNI-AI guarantees sovereignty through two distinct layers:
+Configured for sovereign on-premise deployment; local inference and application traffic are verified to remain on localhost loopback during testing, while sandbox outbound networking is explicitly blocked.
 
 ### A. Enforcement Mechanisms
 1. **Strict Loopback Binding**: All inference requests and database queries are bound to `127.0.0.1`.
 2. **Zero Cloud API Keys**: Codebase contains zero commercial cloud SDKs (`openai`, `anthropic`).
-3. **Hardened Sandbox**: Python sandbox executes code with environment stripping and a monkey-patched `socket.socket` that blocks all outbound socket creation.
+3. **Hardened Sandbox**: Python sandbox executes code with environment stripping, timeout guards, and a monkey-patched `socket.socket` that blocks all outbound socket creation (`PermissionError`).
 4. **Air-Gapped Vector DB**: Qdrant runs as an embedded local disk engine (`./data/qdrant_storage`), eliminating open container ports.
 
-### B. Observability & Telemetry
+### B. Observability & Telemetry (No Faked Status)
 - `GET /api/security/status`: Inspects active OS network sockets via `psutil`.
-- Displays real-time counts of:
-  - External AI API calls: **0**
-  - External network connections: **0**
+- Real-time verified indicators:
+  - External AI API calls: **0** (no cloud SDKs or endpoints configured)
+  - External network connections: **0** (active loopback sockets verified)
   - Active localhost sockets: Verified
 - Every run is logged to an immutable local SQLite audit database (`outputs/audit.db`).
 
@@ -240,11 +240,14 @@ pytest backend/tests/test_api.py -v                 # REST API endpoints
 
 ---
 
-## 10. Demonstration Artifacts
+## 10. Demonstration Artifacts & Data Provenance Notice
 
-- **Inspection Report PDF**: `data/raw/inspection_reports/MRPL_Inspection_Report_P204.pdf`
-- **P&ID Schematic**: `data/raw/pidqa/pid_cdu_pump_p204.png`
-- **Generated DOCX**: `outputs/MRPL_Inspection_Approval_Note_P204.docx`
+> **Data Provenance Notice**: Demo corpus — synthetic/public industrial demonstration documents. No proprietary MRPL information is included.
+
+- **Inspection Report PDF**: `data/raw/inspection_reports/MRPL_Inspection_Report_P204.pdf` (Synthetic NDT report)
+- **P&ID Schematic**: `data/raw/pidqa/pid_cdu_pump_p204.png` (Synthetic P&ID diagram)
+- **Standard Operating Procedures**: Public refinery standards (API 570, ISO 10816-3, synthesized CDU piping guidelines)
+- **Generated DOCX**: `outputs/MRPL_Inspection_Approval_Note_P204.docx` (Official Approval Note)
 - **System Architecture**: `docs/ARCHITECTURE.md`
 - **API Reference**: `docs/API.md`
 - **Security Guide**: `docs/SECURITY.md`

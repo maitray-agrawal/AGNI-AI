@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     # Local Inference
     MODEL_PROVIDER: str = "ollama"
     OLLAMA_BASE_URL: str = "http://127.0.0.1:11434"
-    DEFAULT_TIMEOUT_SECONDS: int = 120
+    DEFAULT_TIMEOUT_SECONDS: int = 180
 
     # Configured Models
     REASONING_MODEL: str = "llama3.1:8b"

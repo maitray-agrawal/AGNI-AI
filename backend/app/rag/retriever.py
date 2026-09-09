@@ -45,7 +45,7 @@ class QdrantRetriever:
             logger.warning(f"Qdrant collection check failed: {e}")
 
     def _seed_default_industrial_knowledge(self):
-        """Seeds standard MRPL inspection procedures and API 570 refinery guidelines."""
+        """Seeds demonstration corpus: synthetic/public industrial inspection procedures and API 570 / ISO 10816-3 guidelines; no proprietary MRPL information included."""
         sample_corpus = [
             {
                 "document": "MRPL_CDU_Piping_Inspection_Manual.pdf",

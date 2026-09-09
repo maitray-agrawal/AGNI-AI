@@ -16,7 +16,7 @@ To guarantee rapid parallel development over the 48-hour MVP window without code
 2. LangGraph DAG compilation and conditional correction loop.
 3. Capability-based model routing (matching tasks to `llama3.1:8b`, `qwen2.5-coder:7b`, `moondream`).
 4. Hardware-aware sequential model execution (memory guard for 16GB RAM).
-5. Verification node logic enforcing 7-point domain validation.
+5. Verification node logic enforcing 8-point domain validation.
 
 ### Frozen Interface Contract
 ```python

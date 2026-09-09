@@ -29,18 +29,18 @@ The system is built to process confidential industrial engineering assets—incl
 │                         LANGGRAPH AGENT ENGINE                          │
 │                                                                         │
 │  START ──► Planner ──► Router ──► Executor ──► Verifier ──► Finalize    │
-│                                       ▲              │ (Fail)           │
-│                                       └─ Correct ◄───┘                  │
+│                                                     │ (Fail Report)     │
+│                                                     └──► Finalize (Err) │
 └───────────────────────┬───────────────────────────────┬─────────────────┘
                         │                               │
                         ▼                               ▼
        ┌────────────────────────────────┐     ┌───────────────────────────┐
        │      MODEL RUNTIME LAYER       │     │      KNOWLEDGE LAYER      │
        │                                │     │                           │
-       │  LocalModelClient (Interface)  │     │  Local Ingestion          │
-       │  ├── OllamaProvider (Active)   │     │  Fast Local Embeddings    │
+       │  LocalModelClient (Interface)  │     │  Local SOP Ingestion      │
+       │  ├── OllamaProvider (Active)   │     │  384-dim Dense Embeddings │
        │  ├── LMStudioProvider (Ext)    │     │  Embedded Qdrant Storage  │
-       │  └── VLLMProvider (Ext)        │     │  Hybrid Keyword + Dense   │
+       │  └── VLLMProvider (Ext)        │     │  Exact Citation Provenance│
        │                                │     └───────────────────────────┘
        │  Local Open-Weight Models:     │
        │  • llama3.1:8b (Reasoning)     │
@@ -105,9 +105,8 @@ Nodes:
 1. **Planner**: Breaks user request into structured milestone subtasks.
 2. **Router**: Maps subtasks to required capabilities and active local models.
 3. **Executor**: Invokes local tools (document parser, vision analyzer, RAG retriever, code sandbox, document generator).
-4. **Verifier**: Executes 7 domain-specific consistency checks.
-5. **Correct**: Triggers a targeted re-execution loop if verification fails.
-6. **Finalizer**: Bundles output files, formatted citations, and execution telemetry into an `AgentResult`.
+4. **Verifier**: Executes 8 domain-specific consistency checks (model output, execution integrity, asset tag, NDT metrics, RAG citations, recommendations, output files, air-gap OS sockets).
+5. **Finalizer**: Bundles output files, formatted citations, and execution telemetry into an `AgentResult`. (Note: Single-pass verification with detailed diagnostic reporting to finalizer; iterative correction loop is deferred to avoid memory thrashing on 16 GB non-CUDA hardware).
 
 ### 3.3 Multimodal Document & P&ID Pipeline
 1. Documents (PDF/images) are inspected with PyMuPDF.
@@ -117,9 +116,11 @@ Nodes:
 
 ### 3.4 Local RAG Architecture
 - **Vector Database**: Embedded Qdrant storage (`path="./data/qdrant_storage"`), requiring zero external network calls or Docker daemon overhead.
+- **Embeddings**: Deterministic 384-dimensional semantic term/n-gram hashing vectorizer (fast offline fallback embedding for air-gapped CPU inference, avoiding heavy PyTorch/CUDA runtime overhead on 16 GB non-CUDA machines; compatible with dense cosine distance retrieval in Qdrant).
 - **Chunking**: Section-aware hierarchical chunking preserving metadata:
   `document`, `page`, `section`, `equipment_id`, `plant_area`, `revision`.
 - **Retrieval**: Dense semantic search combined with exact keyword filtering, returning exact page and section provenance for grounding.
+- **Data Provenance**: Demo corpus uses synthetic and public industrial engineering standards (API 570, ISO 10816-3). No proprietary MRPL information is included.
 
 ### 3.5 Deliverable Generation
 - **DOCX**: Enterprise-grade MRPL Inspection Approval Note created via `python-docx` with formal header, metadata summary table, extracted findings, cited SOP standards, and official sign-off blocks.

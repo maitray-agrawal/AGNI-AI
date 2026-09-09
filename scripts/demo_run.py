@@ -55,9 +55,10 @@ async def run_flagship_demo():
         print(f"  • File Location: {outputs[0]['path']}")
 
     verification = result.get("verification", {})
-    print(f"  • 7-Point Domain Verification: {verification.get('status', 'passed').upper()}")
+    print(f"  • 8-Point Domain Verification: {verification.get('status', 'passed').upper()}")
     for chk in verification.get("checks", []):
-        print(f"    [PASS] {chk['name']}: {chk.get('details')}")
+        mark = "[PASS]" if chk.get("passed") else "[FAIL]"
+        print(f"    {mark} {chk['name']}: {chk.get('details')}")
 
     # 3. Calculation & Coding Sandbox Workflow
     print("\n[PHASE 3] CODING & ISOLATED SANDBOX CALCULATION WORKFLOW")
@@ -73,7 +74,7 @@ async def run_flagship_demo():
     print(f"  • Sandbox Output: {sandbox_run.stdout.strip()} (Mode: {sandbox_run.isolation_mode})")
 
     print("\n" + "=" * 70)
-    print("  DEMO COMPLETED SUCCESSFULLY: 100% LOCALHOST • ZERO EXTERNAL CALLS")
+    print("  DEMO COMPLETED: LOCAL INFERENCE VERIFIED ON LOCALHOST • ZERO EXTERNAL CALLS OBSERVED")
     print("=" * 70)
 
 

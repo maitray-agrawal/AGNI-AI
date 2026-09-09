@@ -30,7 +30,7 @@ export const SovereigntyPanel: React.FC<SovereigntyPanelProps> = ({ status, onRe
             <div className="text-[11px] text-slate-400 font-mono mb-1">Inference Egress</div>
             <div className="text-lg font-bold text-emerald-400 font-mono flex items-center justify-center space-x-1">
               <Check className="w-4 h-4" />
-              <span>100% Local</span>
+              <span>Localhost</span>
             </div>
             <div className="text-[10px] text-slate-500 font-mono mt-0.5">127.0.0.1:11434</div>
           </div>

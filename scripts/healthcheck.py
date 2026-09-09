@@ -45,7 +45,7 @@ def run_healthcheck():
 
     # 4. Telemetry
     telemetry = NetworkTelemetry.verify_airgap()
-    print(f"[OK] Air-Gap Verification: 100% Localhost (External calls: {telemetry['external_ai_api_calls']})")
+    print(f"[OK] Local Traffic Verification: Verified on localhost (External calls: {telemetry['external_ai_api_calls']})")
     print("=== HEALTHCHECK COMPLETE ===")
 
 if __name__ == "__main__":
