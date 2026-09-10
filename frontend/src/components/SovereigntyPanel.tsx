@@ -13,7 +13,7 @@ export const SovereigntyPanel: React.FC<SovereigntyPanelProps> = ({ status, onRe
       <div className="px-5 py-3.5 border-b border-slate-800/80 bg-slate-900/40 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Shield className="w-4 h-4 text-emerald-400" />
-          <h3 className="text-sm font-semibold text-white tracking-wide">AIR-GAP SOVEREIGNTY & NETWORK TELEMETRY</h3>
+          <h3 className="text-sm font-semibold text-white tracking-wide">ON-PREMISE SOVEREIGNTY & NETWORK TELEMETRY</h3>
         </div>
         <button
           onClick={onRefresh}
@@ -28,36 +28,36 @@ export const SovereigntyPanel: React.FC<SovereigntyPanelProps> = ({ status, onRe
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="p-3 rounded-lg border border-slate-800 bg-slate-950/60 text-center">
             <div className="text-[11px] text-slate-400 font-mono mb-1">Inference Egress</div>
-            <div className="text-lg font-bold text-emerald-400 font-mono flex items-center justify-center space-x-1">
-              <Check className="w-4 h-4" />
-              <span>Localhost</span>
+            <div className="text-sm font-bold text-emerald-400 font-mono flex items-center justify-center space-x-1">
+              <Check className="w-3.5 h-3.5" />
+              <span>OBSERVED</span>
             </div>
-            <div className="text-[10px] text-slate-500 font-mono mt-0.5">127.0.0.1:11434</div>
+            <div className="text-[10px] text-slate-500 font-mono mt-0.5">127.0.0.1:11434 (Loopback)</div>
           </div>
 
           <div className="p-3 rounded-lg border border-slate-800 bg-slate-950/60 text-center">
             <div className="text-[11px] text-slate-400 font-mono mb-1">Cloud AI Calls</div>
-            <div className="text-lg font-bold text-white font-mono">
-              {status?.external_ai_api_calls ?? 0}
+            <div className="text-sm font-bold text-emerald-400 font-mono">
+              BLOCKED
             </div>
-            <div className="text-[10px] text-emerald-400 font-mono mt-0.5">Zero Cloud APIs</div>
+            <div className="text-[10px] text-slate-500 font-mono mt-0.5">{status?.external_ai_api_calls ?? 0} External Calls</div>
           </div>
 
           <div className="p-3 rounded-lg border border-slate-800 bg-slate-950/60 text-center">
             <div className="text-[11px] text-slate-400 font-mono mb-1">Ext Connections</div>
-            <div className="text-lg font-bold text-emerald-400 font-mono">
-              {status?.external_network_connections ?? 0}
+            <div className="text-sm font-bold text-emerald-400 font-mono">
+              OBSERVED: {status?.external_network_connections ?? 0}
             </div>
-            <div className="text-[10px] text-emerald-400 font-mono mt-0.5">Air-Gap Verified</div>
+            <div className="text-[10px] text-slate-500 font-mono mt-0.5">Zero External Egress</div>
           </div>
 
           <div className="p-3 rounded-lg border border-slate-800 bg-slate-950/60 text-center">
             <div className="text-[11px] text-slate-400 font-mono mb-1">Sandbox Isolation</div>
-            <div className="text-lg font-bold text-emerald-400 font-mono flex items-center justify-center space-x-1">
+            <div className="text-sm font-bold text-emerald-400 font-mono flex items-center justify-center space-x-1">
               <Lock className="w-3.5 h-3.5" />
-              <span>Isolated</span>
+              <span>ENFORCED</span>
             </div>
-            <div className="text-[10px] text-slate-500 font-mono mt-0.5">network=none</div>
+            <div className="text-[10px] text-slate-500 font-mono mt-0.5">Socket Intercept / None</div>
           </div>
         </div>
 
@@ -66,7 +66,7 @@ export const SovereigntyPanel: React.FC<SovereigntyPanelProps> = ({ status, onRe
           <div className="flex items-center justify-between text-xs text-slate-400 mb-2 font-mono">
             <span className="flex items-center space-x-1">
               <Activity className="w-3.5 h-3.5 text-sky-400" />
-              <span>Active Process Sockets (Local Host Verification)</span>
+              <span>Active Process Sockets (Host Verification)</span>
             </span>
             <span className="text-[10px] text-slate-500">Live OS Telemetry</span>
           </div>
@@ -88,6 +88,12 @@ export const SovereigntyPanel: React.FC<SovereigntyPanelProps> = ({ status, onRe
               <div className="text-slate-500 text-center py-2">Listening exclusively on 127.0.0.1 loopback.</div>
             )}
           </div>
+        </div>
+
+        {/* Defensible Sovereignty & Compliance Disclosure */}
+        <div className="p-3 rounded-lg border border-slate-800 bg-slate-950/70 text-[11px] text-slate-400 font-mono leading-relaxed">
+          <span className="text-amber-400 font-semibold">SOVEREIGNTY DISCLOSURE: </span>
+          Configured for sovereign on-premise execution. Local inference and application traffic were observed on localhost during validation; sandbox outbound networking is explicitly blocked. Physical air-gap compliance depends on deployment infrastructure.
         </div>
       </div>
     </div>

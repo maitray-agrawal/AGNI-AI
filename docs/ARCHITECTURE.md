@@ -38,9 +38,9 @@ The system is built to process confidential industrial engineering assets—incl
        │      MODEL RUNTIME LAYER       │     │      KNOWLEDGE LAYER      │
        │                                │     │                           │
        │  LocalModelClient (Interface)  │     │  Local SOP Ingestion      │
-       │  ├── OllamaProvider (Active)   │     │  384-dim Dense Embeddings │
-       │  ├── LMStudioProvider (Ext)    │     │  Embedded Qdrant Storage  │
-       │  └── VLLMProvider (Ext)        │     │  Exact Citation Provenance│
+       │  └── OllamaProvider (Active)   │     │  384-dim Dense Embeddings │
+       │                                │     │  Embedded Qdrant Storage  │
+       │                                │     │  Exact Citation Provenance│
        │                                │     └───────────────────────────┘
        │  Local Open-Weight Models:     │
        │  • llama3.1:8b (Reasoning)     │
@@ -189,3 +189,16 @@ Enforces 8 domain-specific criteria before allowing finalization:
 ### 4.10 Benchmark Methodology
 - **Routing Benchmark (`routing_benchmark.py`)**: 60 representative industrial prompts across 5 categories (Reasoning: 20, Coding: 15, General: 10, Vision: 10, Ambiguous: 5). Evaluates routing logic in isolation without expensive model inference. Measured accuracy: **100.0%**, average latency: **<1 ms**.
 - **Agent Reliability Benchmark (`agent_reliability_benchmark.py`)**: 20 end-to-end workflows executed with real local Ollama inference across reasoning, coding, industrial document, and failure/edge-case scenarios. Measures `workflow_success_rate`, `routing_accuracy`, `verifier_pass_rate`, `fallback_rate`, and latency percentiles (`min`, `median`, `average`, `p95`, `max`).
+
+---
+
+## 5. Operational Boundaries & Hardware Limitations
+
+1. **Hardware Host Constraint**: Designed and validated on an edge hardware profile of 16 GB system RAM and shared Intel Arc graphics without dedicated NVIDIA CUDA VRAM.
+2. **Sequential Inference Execution**: Models in Ollama are invoked sequentially rather than concurrently. Loading multiple 7B–8B parameter models simultaneously in 16 GB RAM risks operating system paging or out-of-memory crashes.
+3. **Model Switching Latency**: When transitioning between models (e.g. `llama3.1:8b` and `qwen2.5-coder:7b`), Ollama reloads model weights from disk to RAM, introducing an observed 5–15 second transition latency.
+4. **Lightweight Multimodal Vision**: `moondream` is a compact ~1.8B parameter multimodal model optimized for local CPU/edge execution. While effective for localized table/label inspection and P&ID component extraction, it operates as a proof-of-concept on-premise vision tool and does not possess the capacity of high-parameter cloud multimodal models.
+5. **Deterministic Local Vectorization**: Local RAG utilizes an embedded 384-dimensional deterministic semantic hashing vectorizer paired with local disk Qdrant storage. This eliminates external embedding API dependencies and heavy PyTorch runtime overhead on CPU-only infrastructure.
+6. **Synthetic Demo Corpus**: In strict compliance with MRPL confidentiality mandates, all demonstration documents (inspection reports, P&ID schematics, operating manuals) are synthetic industrial demonstration files. No confidential, classified, or proprietary MRPL refinery data is stored or fabricated.
+7. **Air-Gap Compliance Boundary**: Software enforces loopback binding (`127.0.0.1`) and sandbox socket blocking. Physical air-gap compliance depends entirely on the deployment environment and network infrastructure.
+

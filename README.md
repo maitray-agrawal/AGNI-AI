@@ -198,7 +198,7 @@ python scripts/demo_run.py
 
 ## 7. Security & Air-Gap Compliance Model
 
-Configured for sovereign on-premise deployment; local inference and application traffic are verified to remain on localhost loopback during testing, while sandbox outbound networking is explicitly blocked.
+Configured for sovereign on-premise execution. Local inference and application traffic were observed on localhost during validation; sandbox outbound networking is explicitly blocked. Physical air-gap compliance depends on deployment infrastructure.
 
 ### A. Enforcement Mechanisms
 1. **Strict Loopback Binding**: All inference requests and database queries are bound to `127.0.0.1`.
@@ -258,3 +258,15 @@ python scripts/benchmarks/agent_reliability_benchmark.py   # 20-workflow end-to-
 - **API Reference**: `docs/API.md`
 - **Security Guide**: `docs/SECURITY.md`
 - **Team Plan**: `docs/TEAM_PLAN.md`
+
+---
+
+## 11. Hardware Boundaries & Operational Limitations
+
+1. **Hardware Host Specification**: Validated on an edge industrial host profile of **16 GB RAM** with shared Intel Arc graphics and zero dedicated NVIDIA CUDA VRAM.
+2. **Sequential Inference Execution**: Models in the local Ollama runtime execute sequentially. Loading multiple 7B–8B parameter models simultaneously in 16 GB memory causes high pagefile churn and risks out-of-memory crashes.
+3. **Model Switching Overhead**: When transitioning between models (e.g. `llama3.1:8b` and `qwen2.5-coder:7b`), Ollama dynamically unloads and loads weights from disk to host RAM, introducing a measurable 5–15 second switching latency.
+4. **Lightweight Multimodal Vision**: `moondream` is a compact ~1.8B parameter multimodal model engineered for local edge CPU execution. While effective for localized table/label inspection and P&ID component extraction, it serves as a lightweight proof-of-concept on-premise vision tool and does not replace commercial cloud OCR/vision APIs.
+5. **Deterministic Local Vectorization**: Local RAG operates with an embedded 384-dimensional deterministic semantic hashing vectorizer coupled with local disk Qdrant storage. This eliminates external embedding API dependencies and heavy PyTorch runtime overhead on CPU-only infrastructure.
+6. **Synthetic Demo Corpus**: In strict compliance with MRPL confidentiality mandates, all demonstration documents (inspection reports, P&ID schematics, operating manuals) are synthetic industrial demonstration files. No confidential, classified, or proprietary MRPL refinery data is stored or fabricated.
+7. **Air-Gap Compliance Boundary**: Software enforces localhost loopback binding (`127.0.0.1`) and sandbox socket blocking. Physical air-gap compliance depends entirely on the deployment environment and network infrastructure.

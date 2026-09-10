@@ -70,6 +70,19 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = ({ trace, isLoading
                       {item.details.selected_model && (
                         <div>Model Assigned: <span className="text-sky-400 font-bold">{item.details.selected_model}</span></div>
                       )}
+                      {item.details.model && (
+                        <div>Model Executed: <span className="text-sky-400 font-bold">{item.details.model}</span></div>
+                      )}
+                      {item.details.tools_invoked && item.details.tools_invoked.length > 0 && (
+                        <div className="text-slate-300 flex items-center space-x-1.5 flex-wrap pt-0.5">
+                          <span className="text-slate-400">Tools Invoked:</span>
+                          {item.details.tools_invoked.map((t: string, ti: number) => (
+                            <span key={ti} className="px-1.5 py-0.2 rounded bg-sky-950/80 text-sky-300 border border-sky-800/40 text-[10px] font-mono">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       {item.details.reason && (
                         <div className="text-slate-400 italic">"{item.details.reason}"</div>
                       )}

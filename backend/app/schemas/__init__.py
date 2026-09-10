@@ -39,11 +39,15 @@ class TaskRunResponse(BaseModel):
     task_id: str
     status: str
     selected_model: Optional[str] = None
+    task_type: Optional[str] = None
+    routing_reason: Optional[str] = None
+    total_duration_ms: Optional[int] = None
     plan: List[Dict[str, Any]] = Field(default_factory=list)
     summary: str
     verification: Optional[VerificationResult] = None
     outputs: List[OutputDeliverable] = Field(default_factory=list)
     trace_summary: List[TraceEvent] = Field(default_factory=list)
+    retrieved_citations: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class ModelInfo(BaseModel):

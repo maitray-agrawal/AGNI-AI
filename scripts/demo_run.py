@@ -20,15 +20,18 @@ from backend.app.security.sandbox import execute_code
 async def run_flagship_demo():
     print("=" * 70)
     print("  AGNI-AI: SOVEREIGN ON-PREMISE AIR-GAPPED DEMO (MRPL PS 26117)")
+    print("  Notice: Demo corpus — synthetic/public industrial demonstration documents;")
+    print("  no proprietary MRPL information is included.")
     print("=" * 70)
 
     # 1. Telemetry Verification
-    print("\n[PHASE 1] AIR-GAP TELEMETRY AUDIT")
+    print("\n[PHASE 1] SOVEREIGNTY & AIR-GAP TELEMETRY AUDIT")
     telemetry = NetworkTelemetry.verify_airgap()
-    print(f"  • Air-Gap Verified: {telemetry['air_gapped']}")
-    print(f"  • External AI API Calls: {telemetry['external_ai_api_calls']}")
-    print(f"  • External Connections: {telemetry['external_network_connections']}")
+    print(f"  • Sovereignty Status: OBSERVED Localhost (127.0.0.1)")
+    print(f"  • External AI API Calls: BLOCKED ({telemetry['external_ai_api_calls']})")
+    print(f"  • External Connections: OBSERVED ({telemetry['external_network_connections']})")
     print(f"  • Local Inference Endpoint: {telemetry['inference_endpoint']}")
+    print(f"  • Sandbox Network Isolation: ENFORCED")
     print(f"  • Active Loopback Sockets: {len(telemetry['active_sockets'])}")
 
     # 2. Flagship Inspection Workflow

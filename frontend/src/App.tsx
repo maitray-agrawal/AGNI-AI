@@ -60,6 +60,10 @@ export const App: React.FC = () => {
     },
   ];
 
+  const activeCitations = (latestResponse?.retrieved_citations && latestResponse.retrieved_citations.length > 0)
+    ? latestResponse.retrieved_citations
+    : citations;
+
   return (
     <div className="min-h-screen bg-[#070c18] text-slate-100 flex flex-col">
       <Header airGapped={securityStatus?.air_gapped ?? true} activeModel={activeModel} />
@@ -90,7 +94,7 @@ export const App: React.FC = () => {
 
           {/* Right Column: Evidence Citations & Sovereignty Telemetry */}
           <div className="lg:col-span-5 space-y-6">
-            <EvidencePanel citations={citations} />
+            <EvidencePanel citations={activeCitations} />
             <SovereigntyPanel status={securityStatus} onRefresh={loadTelemetry} />
           </div>
         </div>

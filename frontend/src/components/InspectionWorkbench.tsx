@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Upload, FileText, CheckCircle2, XCircle, Sparkles, RefreshCw } from 'lucide-react';
+import { Play, Upload, FileText, CheckCircle2, XCircle, Sparkles, RefreshCw, Clock } from 'lucide-react';
 import { TaskRunResponse } from '../types';
 import { submitTask, uploadDocument } from '../api/client';
 
@@ -163,12 +163,27 @@ export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
         {/* Latest Response & Synthesis Card */}
         {latestResponse && (
           <div className="mt-5 rounded-lg border border-slate-800 bg-slate-950/70 p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-              <div className="flex items-center space-x-2">
-                <span className="text-xs text-slate-400 font-mono">Assigned Model:</span>
-                <span className="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono text-xs font-bold">
-                  {latestResponse.selected_model || 'Local Model'}
-                </span>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center space-x-1.5">
+                  <span className="text-xs text-slate-400 font-mono">Assigned Model:</span>
+                  <span className="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono text-xs font-bold">
+                    {latestResponse.selected_model || 'Local Model'}
+                  </span>
+                </div>
+
+                {latestResponse.task_type && (
+                  <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[11px]">
+                    Role: {latestResponse.task_type}
+                  </span>
+                )}
+
+                {latestResponse.total_duration_ms !== undefined && latestResponse.total_duration_ms > 0 && (
+                  <span className="flex items-center space-x-1 px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300 font-mono text-[11px]">
+                    <Clock className="w-3 h-3 text-slate-400" />
+                    <span>{(latestResponse.total_duration_ms / 1000).toFixed(1)}s</span>
+                  </span>
+                )}
               </div>
 
               {latestResponse.verification && (
@@ -193,6 +208,16 @@ export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
                 </span>
               )}
             </div>
+
+            {/* Routing Rationale Callout */}
+            {latestResponse.routing_reason && (
+              <div className="text-xs font-mono text-slate-300 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800/80 flex items-start space-x-2">
+                <span className="text-sky-400 font-semibold uppercase tracking-wider text-[10px] bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-800/40 shrink-0">
+                  Routing Rationale
+                </span>
+                <span className="text-slate-300 italic">{latestResponse.routing_reason}</span>
+              </div>
+            )}
 
             {/* Structured Synthesis Content */}
             <div className="text-sm text-slate-200 leading-relaxed font-sans whitespace-pre-wrap">
@@ -223,6 +248,11 @@ export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Synthetic demo corpus disclaimer */}
+            <div className="text-[10px] text-slate-500 font-mono italic border-t border-slate-800/60 pt-2 text-right">
+              Demo corpus — synthetic/public industrial demonstration documents; no proprietary MRPL information is included.
+            </div>
           </div>
         )}
       </div>

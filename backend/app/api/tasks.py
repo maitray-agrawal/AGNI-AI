@@ -21,17 +21,24 @@ async def submit_task(req: TaskRunRequest):
 
     TASK_STORE[task_id] = final_state
 
-    # Format trace events
-    trace_events = [
-        TraceEvent(
-            step=ev.get("step", "unknown"),
-            timestamp=ev.get("timestamp", ""),
-            duration_ms=ev.get("duration_ms", 0),
-            status=ev.get("status", "completed"),
-            details=ev.get("details"),
+    # Extract tool invocations
+    tools_called = [t.get("tool") for t in final_state.get("tool_results", []) if t.get("tool")]
+
+    # Format trace events and enrich executor details with tools invoked
+    trace_events = []
+    for ev in final_state.get("trace", []):
+        details = dict(ev.get("details") or {})
+        if ev.get("step") == "executor" and tools_called and "tools_invoked" not in details:
+            details["tools_invoked"] = tools_called
+        trace_events.append(
+            TraceEvent(
+                step=ev.get("step", "unknown"),
+                timestamp=ev.get("timestamp", ""),
+                duration_ms=ev.get("duration_ms", 0),
+                status=ev.get("status", "completed"),
+                details=details,
+            )
         )
-        for ev in final_state.get("trace", [])
-    ]
 
     # Format verification
     raw_v = final_state.get("verification")
@@ -59,15 +66,26 @@ async def submit_task(req: TaskRunRequest):
         f"Completed via {final_state.get('selected_model')}."
     )
 
+    total_ms = (
+        final_state.get("latency_breakdown", {}).get("total_workflow_ms") or
+        sum(ev.get("duration_ms", 0) for ev in final_state.get("trace", []))
+    )
+
+    citations = final_state.get("retrieved_context") or []
+
     return TaskRunResponse(
         task_id=task_id,
         status="completed" if not final_state.get("errors") else "completed_with_errors",
         selected_model=final_state.get("selected_model"),
+        task_type=final_state.get("task_type"),
+        routing_reason=final_state.get("routing_reason"),
+        total_duration_ms=total_ms,
         plan=final_state.get("plan", []),
         summary=summary_text,
         verification=verification_obj,
         outputs=deliverables,
         trace_summary=trace_events,
+        retrieved_citations=citations,
     )
 
 

@@ -30,15 +30,26 @@ export interface PlanStep {
   description: string;
 }
 
+export interface CitationItem {
+  document: string;
+  page: number;
+  section: string;
+  text: string;
+}
+
 export interface TaskRunResponse {
   task_id: string;
   status: string;
   selected_model?: string;
+  task_type?: string;
+  routing_reason?: string;
+  total_duration_ms?: number;
   plan: PlanStep[];
   summary: string;
   verification?: VerificationResult;
   outputs: OutputDeliverable[];
   trace_summary: TraceEvent[];
+  retrieved_citations?: CitationItem[];
 }
 
 export interface ModelInfo {

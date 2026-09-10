@@ -46,6 +46,10 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({ citations }) => {
           </div>
         ))}
       </div>
+
+      <div className="px-5 py-2.5 bg-slate-900/40 border-t border-slate-800/80 text-[10px] text-slate-500 font-mono italic">
+        Demo corpus — synthetic/public industrial demonstration documents; no proprietary MRPL information is included.
+      </div>
     </div>
   );
 };
