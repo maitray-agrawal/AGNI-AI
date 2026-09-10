@@ -216,18 +216,24 @@ Configured for sovereign on-premise deployment; local inference and application 
 
 ---
 
-## 8. Automated Test Suite
+## 8. Automated Test Suite & Benchmarks
 
 Run the full verification test suite:
 ```bash
-# Run all automated tests
+# Run all automated unit, integration, and failure injection tests
 pytest backend/tests/ -v
 
 # Run individual test modules
+pytest backend/tests/test_agent_models_unit.py -v   # Registry, router, planner unit tests
+pytest backend/tests/test_failure_injection.py -v   # Failure injection & verifier defense
 pytest backend/tests/test_vertical_poc.py -v       # Model routing & execution POC
 pytest backend/tests/test_flagship_workflow.py -v   # Full Flagship NDT pipeline
 pytest backend/tests/test_sandbox.py -v             # Sandbox & network blocking
 pytest backend/tests/test_api.py -v                 # REST API endpoints
+
+# Run Benchmarks
+python scripts/benchmarks/routing_benchmark.py             # 60-task capability routing benchmark
+python scripts/benchmarks/agent_reliability_benchmark.py   # 20-workflow end-to-end reliability benchmark
 ```
 
 ---

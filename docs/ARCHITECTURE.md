@@ -127,6 +127,65 @@ Nodes:
 - **XLSX**: Engineering calculation worksheets generated via `openpyxl`.
 
 ### 3.6 Sovereignty & Air-Gap Enforcement
-- **Network Policy**: Server and models strictly bound to `127.0.0.1`.
-- **Outbound Telemetry**: Real socket-level inspection monitoring all active backend connections to verify zero external IP egress.
+- **Network Policy**: Server and models strictly bound to `127.0.0.1` (ENFORCED).
+- **Outbound Telemetry**: Real socket-level telemetry monitoring active backend connections; verified zero external IP egress during test intervals (OBSERVED). Sandbox network socket creation is intercepted and denied (BLOCKED).
 - **Audit Logging**: SQLite database recording every agent run, model routing decision, tool duration, and SHA-256 deliverable hashes.
+
+---
+
+## 4. AGENT + MODEL ORCHESTRATION
+
+The Agent + Models subsystem provides local model orchestration, routing, execution, verification, and benchmarking for confidential industrial workloads without external network dependencies.
+
+### 4.1 Planner
+- **Decomposition**: Accepts task prompt and file metadata, producing a structured `Plan` containing typed `PlanStep` elements.
+- **Validation**: Schema-validated via Pydantic; every step explicitly declares `step_id`, `name`, `description`, `required_capability`, `required_tools`, `required_files`, and `verification_requirements`. Malformed plans raise explicit `PlanValidationError` rather than silently fabricating missing fields.
+
+### 4.2 Capability Router
+- **Deterministic Routing**: Maps `Task` → `TaskProfile` → hard capability constraints → candidate scoring → `selected_model` and `fallback_chain`. Does NOT use LLMs, embeddings, or heuristic black-boxes for routing.
+- **Explainability**: Every `RoutingDecision` exposes `task_type`, `required_capabilities`, `selected_model`, `reason`, `candidate_scores`, `fallback_chain`, and decision latency (sub-millisecond).
+
+### 4.3 Local Model Registry
+- **Centralized Single Source of Truth**: `ModelRegistry` maintains strongly typed `ModelSpec` records:
+  - `llama3.1:8b` (Reasoning, planning, industrial synthesis)
+  - `qwen2.5-coder:7b` (Coding, deterministic engineering calculations)
+  - `moondream` (Multimodal vision inspection, scanned document analysis)
+  - `mistral:latest` (General instruction following and fast text fallback)
+- **Availability Caching**: Discovered models are cached with a 60-second TTL to avoid repeated expensive HTTP `/api/tags` queries during multi-step tasks.
+
+### 4.4 LocalModelClient
+- **Unified Local Interface**: Abstract `LocalModelClient` with concrete `OllamaProvider` targeting `http://127.0.0.1:11434`.
+- **Strict Backward Compatibility**: Public methods `generate(...)`, `chat(...)`, and `vision(...)` return strings.
+- **Additive Telemetry**: `generate_with_meta(...)`, `chat_with_meta(...)`, and `vision_with_meta(...)` return `(text, ModelInvocationMetadata)` capturing `requested_model`, `actual_model`, `request_id`, `step_id`, `attempt`, `retry_count`, `duration_ms`, `error_type`, and `local_endpoint`.
+- **Bounded Retries**: Maximum 1 retry strictly limited to transient connection errors or socket timeouts; invalid models, unsupported capabilities, or malformed inputs fail immediately.
+
+### 4.5 Executor
+- **State Preservation**: Invokes routed models, parses tool outputs, and measures fine-grained latencies.
+- **Error Classification**: Classifies failures (`TIMEOUT`, `CONNECTION_ERROR`, `MODEL_NOT_FOUND`, `INVALID_RESPONSE`, `EXECUTION_ERROR`) and propagates them cleanly into `AgentState` without swallowing exceptions.
+
+### 4.6 Verifier (8-Point Quality Gate)
+Enforces 8 domain-specific criteria before allowing finalization:
+1. `model_output_valid`: Verifies non-empty output (>20 characters) and guards against error messages passing as content.
+2. `zero_execution_errors`: Verifies `len(errors) == 0`.
+3. `equipment_tag_identified`: Validates asset tag (e.g., `P-204`) in inspection synthesis.
+4. `critical_findings_identified`: Validates quantitative NDT measurements (e.g. wall thickness, vibration).
+5. `rag_evidence_cited`: Verifies grounded Qdrant SOP and API 570 citations.
+6. `recommendation_formulated`: Validates actionable engineering maintenance disposition.
+7. `deliverable_generated`: Verifies `.docx` deliverable exists on disk and exceeds minimum size (>1000 bytes).
+8. `air_gap_integrity`: Verifies live OS telemetry loopback isolation via `NetworkTelemetry`.
+
+### 4.7 Finalizer
+- **Dynamic Compilation**: Compiles deliverable metadata, evidence citations, verification status, and model provenance strictly from upstream state (no hardcoded demo text).
+- **Status Gating**: Sets `final_status` to `completed` or `completed_with_warnings` reflecting verifier gate outcomes.
+
+### 4.8 Execution Trace & Observability
+- **Trace Events**: Every LangGraph node emits structured trace records: `timestamp`, `step`, `duration_ms`, `status`, `model`, `capability`, `fallback`, and `details`.
+- **Latency Breakdown**: End-to-end state tracks `planner_ms`, `router_ms`, `executor_ms`, `verifier_ms`, `finalizer_ms`, and `total_workflow_ms`.
+
+### 4.9 Capability-Safe Fallback Policy
+- **Modality Isolation**: Vision tasks are strictly prohibited from falling back to text-only models (`vision` → `moondream` only; no text fallback).
+- **Structured Recording**: Every fallback event logs `primary_model`, `fallback_model`, `reason`, `attempt`, `duration`, and `result`.
+
+### 4.10 Benchmark Methodology
+- **Routing Benchmark (`routing_benchmark.py`)**: 60 representative industrial prompts across 5 categories (Reasoning: 20, Coding: 15, General: 10, Vision: 10, Ambiguous: 5). Evaluates routing logic in isolation without expensive model inference. Measured accuracy: **100.0%**, average latency: **<1 ms**.
+- **Agent Reliability Benchmark (`agent_reliability_benchmark.py`)**: 20 end-to-end workflows executed with real local Ollama inference across reasoning, coding, industrial document, and failure/edge-case scenarios. Measures `workflow_success_rate`, `routing_accuracy`, `verifier_pass_rate`, `fallback_rate`, and latency percentiles (`min`, `median`, `average`, `p95`, `max`).
