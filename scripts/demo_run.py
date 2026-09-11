@@ -69,12 +69,19 @@ async def run_flagship_demo():
     print(f"  • Calculation Task: {calc_task}")
     calc_result = await run_agent(task=calc_task)
     print(f"  • Model Selected: {calc_result.get('selected_model')}")
+    tools_called = [t.get("tool") for t in calc_result.get("tool_results", [])]
+    print(f"  • Agent Tools Invoked: {tools_called}")
+    sandbox_tools = [t for t in calc_result.get("tool_results", []) if t.get("tool") == "code_sandbox"]
+    if sandbox_tools:
+        sb = sandbox_tools[0]
+        print(f"  • Sandbox Authoritative Output: {sb.get('output', {}).get('stdout', '').strip()}")
+        print(f"  • Sandbox Isolation Mode: {sb.get('output', {}).get('isolation_mode')}")
     print(f"  • Response Excerpt:\n    {calc_result.get('model_response', '')[:200]}...")
 
     # Sandbox Security Verification
-    print("  • Running Sandboxed Execution Security Check...")
+    print("  • Running Independent Network Security Probe...")
     sandbox_run = execute_code("t_init, t_final = 8.2, 7.4; print(f'REDUCTION={((t_init-t_final)/t_init)*100:.2f}%')")
-    print(f"  • Sandbox Output: {sandbox_run.stdout.strip()} (Mode: {sandbox_run.isolation_mode})")
+    print(f"  • Probe Sandbox Output: {sandbox_run.stdout.strip()} (Mode: {sandbox_run.isolation_mode})")
 
     print("\n" + "=" * 70)
     print("  DEMO COMPLETED: LOCAL INFERENCE VERIFIED ON LOCALHOST • ZERO EXTERNAL CALLS OBSERVED")

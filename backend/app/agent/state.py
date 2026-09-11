@@ -28,3 +28,4 @@ class AgentState(TypedDict, total=False):
     latency_breakdown: Dict[str, int]
     final_status: str
     summary: Optional[str]
+    retry_count: int

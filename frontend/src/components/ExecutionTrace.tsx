@@ -21,6 +21,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = ({ trace, isLoading
     planner: 'Autonomous Task Planner',
     router: 'Capability Model Router',
     executor: 'Tool Execution & Model Synthesis',
+    executor_retry: 'Adaptive Execution Retry & Self-Correction',
     verifier: '8-Point Domain Verifier',
     finalizer: 'Deliverable Packaging & Audit Finalizer',
   };
@@ -79,6 +80,16 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = ({ trace, isLoading
                           {item.details.tools_invoked.map((t: string, ti: number) => (
                             <span key={ti} className="px-1.5 py-0.2 rounded bg-sky-950/80 text-sky-300 border border-sky-800/40 text-[10px] font-mono">
                               {t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {item.details.failed_checks_retried && item.details.failed_checks_retried.length > 0 && (
+                        <div className="text-amber-400 flex items-center space-x-1.5 flex-wrap pt-0.5">
+                          <span>Targeted Corrections:</span>
+                          {item.details.failed_checks_retried.map((c: string, ci: number) => (
+                            <span key={ci} className="px-1.5 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-800/40 text-[10px] font-mono">
+                              {c}
                             </span>
                           ))}
                         </div>

@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     CODING_MODEL: str = "qwen2.5-coder:7b"
     VISION_MODEL: str = "moondream"
     GENERAL_MODEL: str = "mistral:latest"
+    EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
+    EMBEDDING_DIM: int = 384
 
     # Storage Paths
     BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent

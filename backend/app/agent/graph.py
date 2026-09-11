@@ -92,41 +92,74 @@ async def router_node(state: AgentState) -> Dict[str, Any]:
 
 async def executor_node(state: AgentState) -> Dict[str, Any]:
     t0 = time.time()
-    res = await execute_task(state)
+    is_retry = (state.get("current_step") == "verifier") or (
+        state.get("verification", {}).get("status") == "failed" and state.get("retry_count", 0) == 0
+    )
+
+    retry_count = state.get("retry_count", 0)
+    exec_state = dict(state)
+    failed_checks = []
+
+    if is_retry:
+        retry_count += 1
+        failed_checks = [
+            c.get("name")
+            for c in state.get("verification", {}).get("checks", [])
+            if not c.get("passed")
+        ]
+        failed_str = ", ".join(failed_checks) if failed_checks else "domain consistency checks"
+        exec_state["retry_count"] = retry_count
+        exec_state["task"] = (
+            f"{state['task']}\n\n"
+            f"[RETRY CORRECTION REQUIRED: Previous execution attempt failed the following verification check(s): {failed_str}. "
+            f"Please specifically address and correct these items in your synthesis.]"
+        )
+        logger.info(f"Executing agent retry attempt {retry_count}/1 for failed checks: {failed_checks}")
+
+    res = await execute_task(exec_state)
     status = "failed" if res.get("errors") else "completed"
     
     actual_model = res.get("actual_model") or state.get("selected_model")
     fallbacks = res.get("fallbacks", [])
+    step_name = "executor_retry" if is_retry else "executor"
     
+    event_details: Dict[str, Any] = {
+        "model": actual_model,
+        "errors": res.get("errors", []),
+        "output_length": len(res.get("model_response", "")),
+        "deliverables": len(res.get("outputs", [])),
+        "fallbacks": fallbacks,
+    }
+    if is_retry:
+        event_details["retry_attempt"] = retry_count
+        event_details["failed_checks_retried"] = failed_checks
+
     event = _create_trace_event(
-        step="executor",
+        step=step_name,
         start_time=t0,
         status=status,
-        details={
-            "model": actual_model,
-            "errors": res.get("errors", []),
-            "output_length": len(res.get("model_response", "")),
-            "deliverables": len(res.get("outputs", [])),
-            "fallbacks": fallbacks,
-        },
+        details=event_details,
         model=actual_model,
         capability=state.get("task_type"),
         fallback=len(fallbacks) > 0,
     )
 
     latencies = state.get("latency_breakdown") or {}
-    latencies["executor_ms"] = event["duration_ms"]
+    latencies[f"{step_name}_ms"] = event["duration_ms"]
+
+    new_outputs = res.get("outputs", []) if res.get("outputs") else (state.get("outputs") or [])
 
     return {
         "model_response": res.get("model_response", ""),
         "actual_model": actual_model,
         "model_metadata": res.get("model_metadata"),
         "tool_results": (state.get("tool_results") or []) + res.get("tool_results", []),
-        "outputs": (state.get("outputs") or []) + res.get("outputs", []),
-        "deliverables": (state.get("deliverables") or []) + res.get("outputs", []),
-        "errors": (state.get("errors") or []) + res.get("errors", []),
+        "outputs": new_outputs,
+        "deliverables": new_outputs,
+        "errors": res.get("errors", []),
         "fallbacks": (state.get("fallbacks") or []) + fallbacks,
-        "current_step": "executor",
+        "current_step": step_name,
+        "retry_count": retry_count,
         "latency_breakdown": latencies,
         "trace": (state.get("trace") or []) + [event],
     }
@@ -183,9 +216,19 @@ async def finalizer_node(state: AgentState) -> Dict[str, Any]:
 def should_continue_or_finalize(state: AgentState) -> str:
     """Evaluates verification verdict and routes conditionally."""
     verdict = state.get("verification", {})
+    retry_count = state.get("retry_count", 0)
     if verdict.get("status") == "passed":
         return "finalize"
-    logger.warning(f"Verification gate flagged concerns ({verdict.get('passed_count')}/{verdict.get('total_count')} passed).")
+    if retry_count < 1:
+        logger.warning(
+            f"Verification gate flagged concerns ({verdict.get('passed_count')}/{verdict.get('total_count')} passed). "
+            f"Routing to executor for adaptive retry (attempt {retry_count + 1}/1)."
+        )
+        return "retry"
+    logger.warning(
+        f"Verification gate flagged concerns ({verdict.get('passed_count')}/{verdict.get('total_count')} passed). "
+        "Max retry cap (1) reached. Finalizing."
+    )
     return "finalize"
 
 
@@ -204,6 +247,7 @@ workflow.add_edge("router", "executor")
 workflow.add_edge("executor", "verifier")
 workflow.add_conditional_edges("verifier", should_continue_or_finalize, {
     "finalize": "finalizer",
+    "retry": "executor",
 })
 workflow.add_edge("finalizer", END)
 
@@ -239,6 +283,7 @@ async def run_agent(task: str, files: Optional[List[str]] = None) -> Dict[str, A
         "latency_breakdown": {},
         "final_status": "in_progress",
         "summary": None,
+        "retry_count": 0,
     }
     final_state = await agent_graph.ainvoke(initial_state)
     return final_state

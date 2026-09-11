@@ -275,13 +275,24 @@ async def execute_task(state: Dict[str, Any]) -> Dict[str, Any]:
         })
 
     elif task_type == "coding_calculation":
-        options["num_predict"] = 350
+        from backend.app.security.sandbox import execute_code
+
+        options["num_predict"] = 400
         system_prompt += (
             " You are an expert technical coder and refinery calculation specialist. "
-            "Perform all calculations step-by-step, showing the exact formula, intermediate numbers, "
-            "and final result with clear units. Keep the response concise and focused."
+            "Write deterministic Python code to perform the exact calculation requested. "
+            "You MUST output your Python code in a single fenced code block formatted as:\n"
+            "```python\n"
+            "# calculation code here\n"
+            "print(...)\n"
+            "```\n"
+            "The script must be self-contained and print the computed values and final result to stdout. "
+            "Keep any explanatory text minimal and concise."
         )
-        user_prompt = f"Perform this engineering calculation / task:\n\n{task}"
+        user_prompt = (
+            f"Perform this engineering calculation / task:\n\n{task}\n\n"
+            "Write the complete Python script inside a single ```python ... ``` block that calculates and prints the result."
+        )
         response_text = await _invoke_model_with_fallback(
             target_model=selected_model,
             prompt_text=user_prompt,
@@ -289,6 +300,59 @@ async def execute_task(state: Dict[str, Any]) -> Dict[str, Any]:
             opt=options,
             capability_role="coding",
         )
+
+        # Extract fenced Python code block
+        code_match = re.search(r"```(?:python)?\s*\n(.*?)```", response_text, re.DOTALL | re.IGNORECASE)
+        t_tool = time.time()
+
+        if code_match:
+            extracted_code = code_match.group(1).strip()
+            sandbox_res = execute_code(extracted_code, timeout=10)
+            tool_duration_ms = int((time.time() - t_tool) * 1000)
+
+            if sandbox_res.success and sandbox_res.exit_code == 0:
+                sandbox_stdout = sandbox_res.stdout.strip()
+                response_text = (
+                    f"{response_text}\n\n"
+                    f"[Deterministic Sandbox Execution Result]:\n"
+                    f"{sandbox_stdout}"
+                )
+                tool_results.append({
+                    "tool": "code_sandbox",
+                    "success": True,
+                    "duration_ms": tool_duration_ms,
+                    "output": {
+                        "stdout": sandbox_stdout,
+                        "exit_code": sandbox_res.exit_code,
+                        "isolation_mode": sandbox_res.isolation_mode,
+                    },
+                })
+            else:
+                err_msg = f"Code sandbox execution failed (exit code {sandbox_res.exit_code}): {sandbox_res.stderr.strip()}"
+                logger.warning(err_msg)
+                errors.append(err_msg)
+                tool_results.append({
+                    "tool": "code_sandbox",
+                    "success": False,
+                    "duration_ms": tool_duration_ms,
+                    "error": sandbox_res.stderr.strip() or f"Non-zero exit code {sandbox_res.exit_code}",
+                    "output": {
+                        "stdout": sandbox_res.stdout.strip(),
+                        "stderr": sandbox_res.stderr.strip(),
+                        "exit_code": sandbox_res.exit_code,
+                        "isolation_mode": sandbox_res.isolation_mode,
+                    },
+                })
+        else:
+            err_msg = "Code sandbox execution failed: No fenced Python code block found in model response."
+            logger.warning(err_msg)
+            errors.append(err_msg)
+            tool_results.append({
+                "tool": "code_sandbox",
+                "success": False,
+                "duration_ms": 0,
+                "error": "No fenced Python code block extracted from model response.",
+            })
 
     else:
         # General technical reasoning

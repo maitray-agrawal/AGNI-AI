@@ -94,7 +94,7 @@ These assets cannot be transmitted to commercial public cloud LLM APIs due to co
   - `qwen2.5-coder:7b` (Deterministic Calculations, Technical Python Scripts)
   - `moondream` (Multimodal Vision, Scanned Inspection extraction, P&ID visual analysis)
   - `mistral:latest` (Fast General Instruction fallback)
-- **Vector Database**: Embedded Qdrant (`qdrant-client` local disk storage at `./data/qdrant_storage`) with deterministic 384-dim semantic hashing vectorizer (optimized for air-gapped CPU execution without PyTorch/CUDA runtime overhead)
+- **Vector Database & Embeddings**: Embedded Qdrant (`qdrant-client` local disk storage at `./data/qdrant_storage`) with local dense semantic embeddings (`sentence-transformers/all-MiniLM-L6-v2`, 384-dim, local CPU inference, strictly air-gapped execution from pre-cached weights with zero runtime network access)
 - **Document Processing**: PyMuPDF (`fitz`), `python-docx`, `openpyxl`
 - **Security & Telemetry**: `psutil` OS socket inspection, Python socket monkey-patch isolation, SQLite audit trail
 

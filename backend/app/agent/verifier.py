@@ -91,11 +91,15 @@ async def verify_execution(state: Dict[str, Any]) -> Dict[str, Any]:
             "details": "Quantitative NDT measurements verified in report" if has_findings else "Missing quantitative measurements",
         })
     elif task_type == "coding_calculation":
-        has_calc = any(ch in model_response for ch in ["%", "mm", "=", "decrease", "reduction", "result", "calculated", "0.", "1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.", "9."])
+        has_sandbox = any(t.get("tool") == "code_sandbox" and t.get("success") for t in tool_results)
         checks.append({
             "name": "critical_findings_identified",
-            "passed": has_calc,
-            "details": "Quantitative calculation result detected in output" if has_calc else "Missing quantitative calculation metrics",
+            "passed": has_sandbox,
+            "details": (
+                "Deterministic calculation verified via isolated code sandbox (tool: code_sandbox)"
+                if has_sandbox
+                else "Missing verified code sandbox execution result in tool_results"
+            ),
         })
     else:
         checks.append({
