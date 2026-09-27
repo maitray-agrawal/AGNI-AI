@@ -160,6 +160,8 @@ async def execute_task(state: Dict[str, Any]) -> Dict[str, Any]:
                 "success": False,
                 "duration_ms": int((time.time() - t_tool) * 1000),
                 "error": str(e),
+                "degraded_mode": True,
+                "degraded_reason": str(e),
             })
 
         # Step 2: Vision & Multimodal Extraction
@@ -194,6 +196,8 @@ async def execute_task(state: Dict[str, Any]) -> Dict[str, Any]:
                 "success": False,
                 "duration_ms": int((time.time() - t_tool) * 1000),
                 "error": str(e),
+                "degraded_mode": True,
+                "degraded_reason": str(e),
             })
 
         # Step 3: Local Qdrant RAG Retrieval
@@ -218,6 +222,16 @@ async def execute_task(state: Dict[str, Any]) -> Dict[str, Any]:
         ]
 
         # Step 4: Reasoning Model Synthesis (with fallback capability)
+        correction_block = ""
+        retry_correction = state.get("retry_correction")
+        if retry_correction:
+            correction_block = (
+                f"\n\n[CORRECTION REQUIRED FROM PRIOR ATTEMPT]\n\n"
+                f"The previous synthesis failed these verification checks:\n\n"
+                f"{retry_correction}\n\n"
+                f"Specifically address and resolve each failed verification condition in this revised evaluation. Do not merely repeat the previous synthesis."
+            )
+
         reasoning_prompt = (
             f"You are the Lead Integrity Engineer at MRPL Refinery. Formulate an engineering evaluation based on:\n"
             f"EQUIPMENT: {inspection_findings.equipment_id} ({inspection_findings.plant_area})\n"
@@ -225,7 +239,8 @@ async def execute_task(state: Dict[str, Any]) -> Dict[str, Any]:
             "\n".join(f"- {f.parameter}: {f.measured_value} (Limit: {f.nominal_or_allowable})" for f in inspection_findings.findings) +
             f"\n\nCITED LOCAL REFINERY STANDARDS:\n" +
             "\n".join(f"[{c['document']} Pg {c['page']}]: {c['text']}" for c in citations_data) +
-            f"\n\nProvide clear, numbered engineering recommendations and clearance disposition."
+            f"{correction_block}\n\n"
+            f"Provide clear, numbered engineering recommendations and clearance disposition."
         )
 
         response_text = await _invoke_model_with_fallback(
@@ -289,6 +304,8 @@ async def execute_task(state: Dict[str, Any]) -> Dict[str, Any]:
             "The script must be self-contained and print the computed values and final result to stdout. "
             "Keep any explanatory text minimal and concise."
         )
+        # AUDIT: coding_calculation uses user_prompt containing 'task' directly,
+        # which already incorporates retry correction context appended by graph.py.
         user_prompt = (
             f"Perform this engineering calculation / task:\n\n{task}\n\n"
             "Write the complete Python script inside a single ```python ... ``` block that calculates and prints the result."
@@ -356,6 +373,8 @@ async def execute_task(state: Dict[str, Any]) -> Dict[str, Any]:
 
     else:
         # General technical reasoning
+        # AUDIT: general_reasoning passes prompt_text=task, which already receives
+        # retry correction appended to state['task'] by graph.py during retry iterations.
         options["num_predict"] = 350
         response_text = await _invoke_model_with_fallback(
             target_model=selected_model,

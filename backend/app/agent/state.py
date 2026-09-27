@@ -29,3 +29,4 @@ class AgentState(TypedDict, total=False):
     final_status: str
     summary: Optional[str]
     retry_count: int
+    retry_correction: Optional[str]

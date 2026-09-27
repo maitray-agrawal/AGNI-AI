@@ -19,11 +19,11 @@ export const Header: React.FC<HeaderProps> = ({ airGapped, activeModel }) => {
             <div className="flex items-center space-x-2">
               <h1 className="text-xl font-bold tracking-tight text-white font-mono">AGNI-AI</h1>
               <span className="px-2 py-0.5 text-xs font-semibold rounded-md bg-orange-500/10 text-orange-400 border border-orange-500/20">
-                MRPL SOVEREIGN
+                ASTRAX SOVEREIGN
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              Agentic Government Neural Intelligence • SIH PS 26117
+              Sovereign Agentic Intelligence for Evidence-Grounded Engineering Workflows
             </p>
           </div>
         </div>

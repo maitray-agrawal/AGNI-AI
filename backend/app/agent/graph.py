@@ -109,6 +109,7 @@ async def executor_node(state: AgentState) -> Dict[str, Any]:
         ]
         failed_str = ", ".join(failed_checks) if failed_checks else "domain consistency checks"
         exec_state["retry_count"] = retry_count
+        exec_state["retry_correction"] = failed_str
         exec_state["task"] = (
             f"{state['task']}\n\n"
             f"[RETRY CORRECTION REQUIRED: Previous execution attempt failed the following verification check(s): {failed_str}. "
@@ -160,6 +161,7 @@ async def executor_node(state: AgentState) -> Dict[str, Any]:
         "fallbacks": (state.get("fallbacks") or []) + fallbacks,
         "current_step": step_name,
         "retry_count": retry_count,
+        "retry_correction": exec_state.get("retry_correction"),
         "latency_breakdown": latencies,
         "trace": (state.get("trace") or []) + [event],
     }

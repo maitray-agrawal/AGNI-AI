@@ -1,8 +1,8 @@
 # AGNI-AI System Architecture
 
-## 1. Overview & Problem Statement
-**AGNI-AI** (**A**gentic **G**overnment **N**eural **I**ntelligence) is a sovereign, air-gapped, on-premise multimodal agentic AI workbench engineered for **Mangalore Refinery and Petrochemicals Limited (MRPL)** under **SIH 2026 Problem Statement 26117**.
-The system is built to process confidential industrial engineering assets—including scanned non-destructive testing (NDT) inspection reports, Piping & Instrumentation Diagrams (P&IDs), operating manuals, and standard operating procedures (SOPs)—completely within on-premise infrastructure without external network egress.
+## 1. Overview & Positioning
+**AGNI-AI** is a sovereign, local-first multimodal agentic AI platform engineered for evidence-grounded engineering workflows (part of the AstraX project family).
+The system processes sensitive engineering assets—including scanned non-destructive testing (NDT) inspection reports, Piping & Instrumentation Diagrams (P&IDs), operating manuals, and standard operating procedures (SOPs)—completely within local infrastructure without sending data to external AI services.
 
 ---
 

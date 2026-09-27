@@ -41,6 +41,21 @@ async def finalize_task(state: Dict[str, Any]) -> Dict[str, Any]:
         if errors:
             summary += f" Errors encountered: {len(errors)}."
 
+    # Scan tool_results for degraded mode extraction
+    tool_results = state.get("tool_results", [])
+    degraded_warnings = []
+    for tr in tool_results:
+        if tr.get("degraded_mode"):
+            tool_name = tr.get("tool", "unknown_tool")
+            reason = tr.get("degraded_reason") or tr.get("error", "Unknown error")
+            degraded_warnings.append(
+                f"⚠ DEGRADED MODE: Live extraction failed for {tool_name} — reference values were used. Reason: {reason}"
+            )
+
+    if degraded_warnings:
+        warning_block = "\n".join(degraded_warnings)
+        summary = f"{warning_block}\n\n{summary}"
+
     return {
         "summary": summary,
         "deliverables": outputs,

@@ -102,7 +102,7 @@ export const App: React.FC = () => {
 
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-[#060a14] py-4 px-6 text-center text-xs text-slate-500 font-mono">
-        AGNI-AI • Sovereign Multimodal Agentic Workbench • SIH Problem Statement 26117 • MRPL Refinery Infrastructure
+        AGNI-AI • Sovereign Agentic Intelligence for Evidence-Grounded Engineering Workflows • AstraX
       </footer>
     </div>
   );

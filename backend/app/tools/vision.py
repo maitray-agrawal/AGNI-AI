@@ -38,8 +38,8 @@ class VisionAnalyzer:
 
     async def analyze_inspection_page(self, image_b64: str, page_text: Optional[str] = None) -> StructuredInspectionReport:
         """Analyzes an inspection report page using multimodal vision + OCR context."""
-        # If rich text is extracted from PDF / OCR, parse directly for maximum speed and accuracy
-        if page_text and len(page_text.strip()) > 80:
+        # If rich text is extracted from PDF / OCR, or no image is available, parse directly
+        if (page_text and len(page_text.strip()) > 80) or (page_text and not image_b64):
             logger.info("Parsing structured inspection findings from extracted document text/OCR...")
             return self._extract_structured_fields(page_text)
 

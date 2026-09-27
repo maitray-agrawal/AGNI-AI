@@ -31,9 +31,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="AGNI-AI Sovereign Industrial Workbench",
+    title="AGNI-AI Sovereign Engineering Intelligence",
     version=settings.APP_VERSION,
-    description="Air-gapped, sovereign multimodal agentic AI workbench for MRPL (SIH 2026 PS 26117)",
+    description="Sovereign Agentic Intelligence for Evidence-Grounded Engineering Workflows (AstraX)",
     lifespan=lifespan,
 )
 

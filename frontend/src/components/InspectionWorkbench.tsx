@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Upload, FileText, CheckCircle2, XCircle, Sparkles, RefreshCw, Clock } from 'lucide-react';
+import { Play, Upload, FileText, CheckCircle2, XCircle, Sparkles, RefreshCw, Clock, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { TaskRunResponse } from '../types';
 import { submitTask, uploadDocument } from '../api/client';
 
@@ -207,6 +207,18 @@ export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
                   )}
                 </span>
               )}
+
+              {latestResponse.summary?.includes('DEGRADED MODE') ? (
+                <span className="flex items-center space-x-1.5 text-xs font-mono font-semibold px-2.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>DEGRADED MODE (REFERENCE FALLBACK)</span>
+                </span>
+              ) : latestResponse.task_type === 'inspection_workflow' ? (
+                <span className="flex items-center space-x-1.5 text-xs font-mono font-semibold px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>LIVE EXTRACTION</span>
+                </span>
+              ) : null}
             </div>
 
             {/* Routing Rationale Callout */}

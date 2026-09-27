@@ -19,9 +19,9 @@ from backend.app.security.sandbox import execute_code
 
 async def run_flagship_demo():
     print("=" * 70)
-    print("  AGNI-AI: SOVEREIGN ON-PREMISE AIR-GAPPED DEMO (MRPL PS 26117)")
+    print("  AGNI-AI: SOVEREIGN ENGINEERING WORKFLOW DEMO (AstraX)")
     print("  Notice: Demo corpus — synthetic/public industrial demonstration documents;")
-    print("  no proprietary MRPL information is included.")
+    print("  no proprietary information is included.")
     print("=" * 70)
 
     # 1. Telemetry Verification
