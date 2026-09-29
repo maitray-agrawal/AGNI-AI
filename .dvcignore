@@ -1,0 +1,11 @@
+.git
+.hg
+.trash
+.venv
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+node_modules
+dist
+.tempmediaStorage

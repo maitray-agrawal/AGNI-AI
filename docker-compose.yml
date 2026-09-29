@@ -1,8 +1,41 @@
 version: '3.8'
 
 services:
-  # Embedded local disk storage is used by default.
-  # This container provides optional standalone Qdrant service.
+  # AGNI FastAPI Research Gateway
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: agni_backend
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - APP_ENV=production
+      - API_PORT=8000
+      - AIR_GAPPED_MODE=true
+      - ENABLE_SANDBOX=true
+      - QDRANT_STORAGE_PATH=/app/data/qdrant_storage
+    volumes:
+      - ./data:/app/data
+      - ./outputs:/app/outputs
+      - ./models:/app/models
+    restart: unless-stopped
+    depends_on:
+      - qdrant
+
+  # AGNI React 18 Production Workspace
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: agni_frontend
+    ports:
+      - "127.0.0.1:5174:80"
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  # Standalone Qdrant Vector Engine
   qdrant:
     image: qdrant/qdrant:latest
     container_name: agni_qdrant
@@ -13,7 +46,7 @@ services:
       - ./data/qdrant_storage:/qdrant/storage
     restart: unless-stopped
 
-  # Hardened Code Execution Sandbox image
+  # Hardened Air-Gapped Code Execution Sandbox
   sandbox_runner:
     image: python:3.11-slim
     container_name: agni_sandbox
@@ -23,4 +56,4 @@ services:
         limits:
           cpus: '1.0'
           memory: 512M
-    command: ["python", "-c", "print('AGNI-AI Sandbox Container Initialized')"]
+    command: ["python", "-c", "print('AGNI Sovereign Sandbox Initialized')"]

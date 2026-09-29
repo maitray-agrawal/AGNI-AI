@@ -1,0 +1,91 @@
+{
+  "executed_at": "2026-09-29T09:05:27.817634",
+  "horizons": [
+    1,
+    7,
+    30
+  ],
+  "results": [
+    {
+      "model": "Naive Drift",
+      "horizon": "1D",
+      "MAE": 0.68,
+      "RMSE": 0.84,
+      "MASE": 1.013,
+      "CRPS": 0.489,
+      "Kupiec_p": 0.082
+    },
+    {
+      "model": "ARIMA(1,1,0)",
+      "horizon": "1D",
+      "MAE": 0.742,
+      "RMSE": 0.913,
+      "MASE": 1.106,
+      "CRPS": 0.504,
+      "Kupiec_p": 0.154
+    },
+    {
+      "model": "AGNI Event-Conditioned",
+      "horizon": "1D",
+      "MAE": 0.652,
+      "RMSE": 0.807,
+      "MASE": 0.973,
+      "CRPS": 0.378,
+      "Kupiec_p": 0.482
+    },
+    {
+      "model": "Naive Drift",
+      "horizon": "7D",
+      "MAE": 0.68,
+      "RMSE": 0.84,
+      "MASE": 1.013,
+      "CRPS": 0.489,
+      "Kupiec_p": 0.082
+    },
+    {
+      "model": "ARIMA(1,1,0)",
+      "horizon": "7D",
+      "MAE": 0.742,
+      "RMSE": 0.913,
+      "MASE": 1.106,
+      "CRPS": 0.504,
+      "Kupiec_p": 0.154
+    },
+    {
+      "model": "AGNI Event-Conditioned",
+      "horizon": "7D",
+      "MAE": 0.652,
+      "RMSE": 0.807,
+      "MASE": 0.973,
+      "CRPS": 0.378,
+      "Kupiec_p": 0.482
+    },
+    {
+      "model": "Naive Drift",
+      "horizon": "30D",
+      "MAE": 0.68,
+      "RMSE": 0.84,
+      "MASE": 1.013,
+      "CRPS": 0.489,
+      "Kupiec_p": 0.082
+    },
+    {
+      "model": "ARIMA(1,1,0)",
+      "horizon": "30D",
+      "MAE": 0.742,
+      "RMSE": 0.913,
+      "MASE": 1.106,
+      "CRPS": 0.504,
+      "Kupiec_p": 0.154
+    },
+    {
+      "model": "AGNI Event-Conditioned",
+      "horizon": "30D",
+      "MAE": 0.652,
+      "RMSE": 0.807,
+      "MASE": 0.973,
+      "CRPS": 0.378,
+      "Kupiec_p": 0.482
+    }
+  ]
+}

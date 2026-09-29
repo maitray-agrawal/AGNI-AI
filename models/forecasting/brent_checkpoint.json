@@ -1,0 +1,13 @@
+{
+  "model_name": "AGNI-EC-Forecaster-BRENT",
+  "asset_id": "BRENT",
+  "alpha": 0.1,
+  "target_coverage": 0.9,
+  "empirical_coverage": 0.918,
+  "mean_interval_width": 8.471,
+  "quantile_threshold": 4.235673469387764,
+  "training_samples": 200,
+  "validation_samples": 50,
+  "trained_at": "2026-09-29T09:03:57.205301",
+  "status": "ready_for_inference"
+}

@@ -176,3 +176,33 @@ def test_backtest_evaluator_and_kupiec():
     assert res.sample_size_days == n
     assert res.crps > 0.0
     assert res.var_kupiec_p_value > 0.0
+
+
+def test_mlops_training_pipeline(tmp_path):
+    from agni.training.train_forecaster import train_event_conditioned_model
+    res = train_event_conditioned_model(asset_id="BRENT", alpha=0.10, output_dir=str(tmp_path))
+    assert res["model_name"] == "AGNI-EC-Forecaster-BRENT"
+    assert res["target_coverage"] == 0.90
+    assert res["empirical_coverage"] > 0.70
+    assert res["status"] == "ready_for_inference"
+
+
+def test_mlops_evaluation_pipeline(tmp_path):
+    from agni.training.evaluate_forecaster import evaluate_model_performance
+    res = evaluate_model_performance(asset_id="BRENT", output_dir=str(tmp_path))
+    assert "point_metrics" in res
+    assert "distribution_metrics" in res
+    assert "kupiec_pof_test" in res
+    assert res["point_metrics"]["MAE"] > 0.0
+    assert res["distribution_metrics"]["CRPS"] > 0.0
+
+
+def test_mlops_backtest_comparison(tmp_path):
+    from agni.training.backtest import run_full_backtest_pipeline
+    res = run_full_backtest_pipeline(horizons=[1, 7], output_dir=str(tmp_path))
+    assert len(res["results"]) == 6
+    models = {r["model"] for r in res["results"]}
+    assert "AGNI Event-Conditioned" in models
+    assert "ARIMA(1,1,0)" in models
+    assert "Naive Drift" in models
+

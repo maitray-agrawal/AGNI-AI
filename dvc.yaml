@@ -1,0 +1,27 @@
+stages:
+  train_forecaster:
+    cmd: python -m agni.training.train_forecaster --asset BRENT --alpha 0.10 --outdir models/forecasting
+    deps:
+      - agni/training/train_forecaster.py
+      - agni/forecasting/event_conditioned.py
+      - agni/calibration/conformal.py
+      - agni/markets/time_series.py
+    outs:
+      - models/forecasting/brent_checkpoint.json
+  evaluate_forecaster:
+    cmd: python -m agni.training.evaluate_forecaster --asset BRENT --checkpoint models/forecasting/brent_checkpoint.json --output outputs/brent_evaluation_report.json
+    deps:
+      - models/forecasting/brent_checkpoint.json
+      - agni/training/evaluate_forecaster.py
+      - agni/backtesting/evaluator.py
+    outs:
+      - outputs/brent_evaluation_report.json
+  backtest:
+    cmd: python -m agni.training.backtest --asset BRENT --output outputs/backtest_comparison.json
+    deps:
+      - agni/training/backtest.py
+      - agni/forecasting/baselines.py
+      - agni/forecasting/event_conditioned.py
+      - agni/backtesting/evaluator.py
+    outs:
+      - outputs/backtest_comparison.json

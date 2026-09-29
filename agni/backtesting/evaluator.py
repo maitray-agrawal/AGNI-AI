@@ -45,6 +45,45 @@ class ModelBacktestEvaluator:
         p_value = 1.0 - stats.chi2.cdf(max(0.0, lr), df=1)
         return float(p_value)
 
+    @staticmethod
+    def evaluate_point_forecasts(actuals: Any, predictions: Any) -> Dict[str, float]:
+        a = np.array(actuals)
+        p = np.array(predictions)
+        err = a - p
+        mae = float(np.mean(np.abs(err)))
+        rmse = float(np.sqrt(np.mean(err ** 2)))
+        naive_mae = float(np.mean(np.abs(np.diff(a)))) if len(a) > 1 else 1.0
+        mase = mae / (naive_mae + 1e-8)
+        return {"MAE": mae, "RMSE": rmse, "MASE": mase}
+
+    @classmethod
+    def evaluate_distribution_forecasts(cls, actuals: Any, pred_means: Any, pred_stds: Any, quantiles: Dict[float, Any] = None) -> Dict[str, float]:
+        a = np.array(actuals)
+        m = np.array(pred_means)
+        s = np.array(pred_stds)
+        crps = cls.calculate_crps_gaussian(a, m, s)
+        out = {"CRPS": crps}
+        if quantiles:
+            for tau, q_vals in quantiles.items():
+                out[f"Pinball_Loss_{tau}"] = cls.calculate_pinball_loss(a, np.array(q_vals), tau=tau)
+        return out
+
+    @classmethod
+    def evaluate_var_coverage(cls, n_observations: int, n_breaches: int, alpha: float = 0.05) -> Dict[str, Any]:
+        p_val = cls.kupiec_pof_test(n_breaches, n_observations, alpha=alpha)
+        obs_rate = n_breaches / (n_observations + 1e-8)
+        lr_stat = round(float(-2.0 * np.log((((1.0 - alpha)**(n_observations - n_breaches) * alpha**n_breaches) /
+                                       (((1.0 - obs_rate)**(n_observations - n_breaches) * (obs_rate**n_breaches) + 1e-12))) + 1e-12)), 3) if 0 < obs_rate < 1 else 0.0
+        return {
+            "n_observations": n_observations,
+            "n_breaches": n_breaches,
+            "nominal_alpha": alpha,
+            "observed_rate": round(obs_rate, 4),
+            "LR_stat": max(0.0, lr_stat),
+            "p_value": round(p_val, 4),
+            "accept_null": p_val > 0.05,
+        }
+
     @classmethod
     def run_rolling_origin_validation(
         cls,
@@ -95,3 +134,4 @@ class ModelBacktestEvaluator:
 
 
 backtest_evaluator = ModelBacktestEvaluator()
+BacktestEngine = ModelBacktestEvaluator

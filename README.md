@@ -114,6 +114,49 @@ All data ingested or manually authored conforms to 17 strict Pydantic v2 canonic
 - Full manual workflow: Analysts can inject custom shock events, configure sovereign actors, coordinates, severities, and transmission chains directly via the UI or REST APIs (`POST /api/events`).
 - Newly created events automatically trigger deterministic risk scoring and instantly appear as active pins on the D3 Equal Earth Global Signal Field.
 
+### 9. MLOps Experiment Tracking & DVC Data Pipelines
+- **Separation of Concerns:** Training is strictly decoupled from the online FastAPI inference runtime. Models are trained offline and loaded via versioned checkpoints.
+- **MLflow Tracking:** Automated logging of runs, hyperparameters (`alpha`, `training_samples`), calibration metrics (`empirical_coverage`, `mean_interval_width`, `quantile_threshold`), validation scores (`MAE`, `RMSE`, `CRPS`), and the Kupiec POF likelihood ratio test ($p$-values) into `mlflow` experiments.
+- **DVC Stage Pipelines:** Defined in `dvc.yaml` covering `train_forecaster`, `evaluate_forecaster`, and `backtest` with dependency and artifact hash tracking.
+- **CLI Commands:**
+  ```bash
+  # Train offline event-conditioned forecaster & calibrate conformal bands
+  python -m agni.training.train_forecaster --asset BRENT --alpha 0.10
+
+  # Evaluate out-of-sample forecast accuracy & Kupiec POF risk coverage
+  python -m agni.training.evaluate_forecaster --asset BRENT
+
+  # Run rolling-origin purged walk-forward backtest comparison
+  python -m agni.training.backtest --horizons 1 7 30
+  ```
+
+### 10. Model Cards & Data Sources Registry
+- **Model Cards (`docs/model_cards/`):** Full institutional documentation covering purpose, mathematical formulation, input/output tensors, training/validation periods, known failure modes, and calibration bounds:
+  - [`event_conditioned_forecaster.md`](docs/model_cards/event_conditioned_forecaster.md)
+  - [`markov_switching_regime_detector.md`](docs/model_cards/markov_switching_regime_detector.md)
+  - [`dynamic_risk_graph.md`](docs/model_cards/dynamic_risk_graph.md)
+  - [`stress_scenario_engine.md`](docs/model_cards/stress_scenario_engine.md)
+- **Data Sources Catalog (`data_sources.yaml`):** Verifiable provenance registry specifying licensing, schemas, update frequencies, and point-in-time constraints for GPR Index, FRED Macro, EIA Energy, World Bank Pink Sheet, IMF IFS, AIS Telemetry, and SCFI.
+
+### 11. Google Colab Training Notebooks
+- [`notebooks/colab/agni_forecaster_training.ipynb`](notebooks/colab/agni_forecaster_training.ipynb): End-to-end dataset schema validation, time-series feature extraction, event-conditioned forecaster fitting, non-parametric conformal calibration, and checkpoint export.
+- [`notebooks/colab/agni_graph_model_training.ipynb`](notebooks/colab/agni_graph_model_training.ipynb): Dynamic directed risk graph generation, topological betweenness centrality computation, and shock impulse response simulation.
+
+### 12. Earth Observation (EO) & Satellite Telemetry (Phase 11)
+- **Gated Architecture:** Satellite telemetry operates as an advanced gated research module (`AGNI_ENABLE_SATELLITE_EO=false` by default). Live satellite image feeds are never a hard runtime blocker.
+- **Synthetic Aperture Radar (SAR) Telemetry:** Provides calibrated vessel counts, anchorage queue backlog density, and transit corridor flow monitoring over strategic maritime chokepoints (`strait-of-hormuz`, `bab-el-mandeb`, `strait-of-malacca`, `suez-canal`, `panama-canal`, `bosphorus-strait`).
+- **Statistical Anomaly Detection:** Computes non-parametric congestion anomaly $z$-scores relative to 30-day baseline traffic patterns and projects estimated cargo delay hours.
+- **REST Endpoints:**
+  - `GET /api/satellite/status` — Operational mode and gate status
+  - `GET /api/satellite/chokepoints` — Monitored chokepoint catalog with normal baselines
+  - `GET /api/satellite/analyses` — Multi-constellation SAR vessel density analyses
+  - `GET /api/satellite/analyses/{chokepoint_id}` — Chokepoint-specific SAR pass report
+  - `POST /api/satellite/scan` — Dispatch synthetic/observed SAR acquisition pass
+
+### 13. Production Docker Packaging
+- **Multi-Stage Images:** Hardened, non-root Python 3.11 backend (`docker/Dockerfile.backend`) and multi-stage Nginx Alpine SPA frontend (`docker/Dockerfile.frontend`).
+- **Orchestration:** `docker-compose.yml` orchestrates backend, frontend, embedded Qdrant vector store, and the air-gapped execution sandbox.
+
 ---
 
 ## System Flow
