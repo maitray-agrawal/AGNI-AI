@@ -19,6 +19,7 @@ from backend.app.api.forecasts import router as forecasts_router
 from backend.app.api.graph import router as graph_router
 from backend.app.api.research import router as research_router, direct_router as research_direct_router
 from backend.app.api.satellite import router as satellite_router
+from backend.app.api.markets import router as markets_router
 
 # Configure logging
 logging.basicConfig(
@@ -75,11 +76,13 @@ app.include_router(graph_router, prefix="/api", tags=["Graph"])
 app.include_router(research_router, prefix="/api", tags=["Research"])
 app.include_router(research_direct_router, prefix="/api", tags=["Research Direct"])
 app.include_router(satellite_router, prefix="/api", tags=["Earth Observation (Satellite)"])
+app.include_router(markets_router, prefix="/api", tags=["Markets"])
 
-# Direct top-level Phase 1 routes: /health, /events, /signals
+# Direct top-level Phase 1 & Phase 3 routes: /health, /events, /signals, /markets
 app.include_router(health_router, tags=["Health (Root)"])
 app.include_router(events_router, tags=["Events (Root)"])
 app.include_router(signals_router, tags=["Signals (Root)"])
+app.include_router(markets_router, tags=["Markets (Root)"])
 
 
 @app.get("/")
