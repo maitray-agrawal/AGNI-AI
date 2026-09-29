@@ -1,213 +1,105 @@
 """
 AGNI Dynamic Risk & Trade Topology Graph API
 ============================================
-Exposes relational node-edge topology mapping:
-Country → Chokepoint → Commodity → Financial Asset → Macro Shocks
+Exposes interpretable NetworkX directed risk and trade transmission graph:
+  Nodes: Country, Commodity, Financial Asset, Trade Route, Event
+  Edges:
+    country → commodity
+    country → asset
+    country → route
+    commodity → asset
+    route → commodity
+    event → country
+
+Edge attributes: exposure, correlation, importance, confidence, timestamp.
+Connected directly to the Knowledge Graph interface.
 """
 
-from fastapi import APIRouter
-from typing import List, Dict, Any
-from backend.app.repositories.intel_store import intel_store
+from fastapi import APIRouter, Query, HTTPException
+from typing import List, Dict, Any, Optional
+
+from agni.graph.topology import dynamic_risk_graph
 
 router = APIRouter(prefix="/graph", tags=["Graph"])
 
 
 @router.get("")
-async def get_intelligence_graph() -> Dict[str, Any]:
-    """Retrieve full dynamic knowledge and trade transmission graph nodes and edges."""
-    countries = intel_store.list_countries()
-    chokepoints = intel_store.list_chokepoints()
-    commodities = intel_store.list_commodities()
-    assets = intel_store.list_assets()
-    events = intel_store.list_events()
+async def get_dynamic_risk_graph() -> Dict[str, Any]:
+    """
+    Retrieve full dynamic knowledge and trade transmission graph.
+    Returns nodes, directed causal edges with institutional attributes,
+    and canonical cascades for interactive UI visualization.
+    """
+    return dynamic_risk_graph.to_dict()
 
-    nodes: List[Dict[str, Any]] = []
-    edges: List[Dict[str, Any]] = []
 
-    # Country Nodes
-    for c in countries:
-        nodes.append({
-            "id": f"country-{c.country_code.lower()}",
-            "label": c.name,
-            "type": "country",
-            "region": c.region,
-            "risk_index": c.geopolitical_risk_index,
-            "coordinates": [c.longitude, c.latitude],
+@router.get("/nodes")
+async def get_graph_nodes(
+    node_type: Optional[str] = Query(None, description="country, commodity, financial_asset, trade_route, event")
+) -> List[Dict[str, Any]]:
+    """Retrieve graph nodes with optional type filtering."""
+    graph_data = dynamic_risk_graph.to_dict()
+    nodes = graph_data["nodes"]
+    if node_type:
+        nodes = [n for n in nodes if n.get("type") == node_type]
+    return nodes
+
+
+@router.get("/edges")
+async def get_graph_edges(
+    source_type: Optional[str] = None,
+    target_type: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Retrieve edges with exposure, correlation, importance, confidence, and timestamp."""
+    graph_data = dynamic_risk_graph.to_dict()
+    edges = graph_data["edges"]
+    if source_type:
+        edges = [e for e in edges if e["source"].startswith(source_type)]
+    if target_type:
+        edges = [e for e in edges if e["target"].startswith(target_type)]
+    return edges
+
+
+@router.get("/path")
+async def trace_causal_path(
+    source: str = Query("event:strait-of-hormuz", description="Source node ID"),
+    target: str = Query("asset:US10Y", description="Target node ID"),
+) -> Dict[str, Any]:
+    """Traces the shortest causal transmission chain between any two nodes in the graph."""
+    path = dynamic_risk_graph.trace_transmission_path(source, target)
+    if not path:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No causal transmission path found from '{source}' to '{target}'",
+        )
+
+    # Extract edge steps along path
+    steps = []
+    for i in range(len(path) - 1):
+        u, v = path[i], path[i + 1]
+        edge_data = dynamic_risk_graph.graph.get_edge_data(u, v)
+        steps.append({
+            "step": i + 1,
+            "source": u,
+            "target": v,
+            "relationship": edge_data.get("relationship", "transmits_to"),
+            "exposure": edge_data.get("exposure", 0.0),
+            "correlation": edge_data.get("correlation", 0.0),
+            "importance": edge_data.get("importance", 0.0),
+            "confidence": edge_data.get("confidence", 0.0),
+            "explanation": edge_data.get("explanation", ""),
         })
-
-    # Chokepoint Nodes
-    for cp in chokepoints:
-        nodes.append({
-            "id": f"cp-{cp.chokepoint_id}",
-            "label": cp.name,
-            "type": "chokepoint",
-            "trade_share_pct": cp.global_trade_share_pct,
-            "status": cp.current_status,
-            "coordinates": [cp.longitude, cp.latitude],
-        })
-
-    # Commodity Nodes
-    for comm in commodities:
-        nodes.append({
-            "id": f"comm-{comm.commodity_id.lower()}",
-            "label": comm.name,
-            "type": "commodity",
-            "category": comm.category,
-        })
-        # Link Chokepoints to Commodity
-        for cp_id in comm.primary_chokepoint_dependencies:
-            edges.append({
-                "source": f"cp-{cp_id}",
-                "target": f"comm-{comm.commodity_id.lower()}",
-                "relationship": "traverses",
-                "weight": 0.85,
-                "confidence": 0.95,
-            })
-
-    # Financial Asset Nodes
-    for a in assets:
-        nodes.append({
-            "id": f"asset-{a.asset_id.lower()}",
-            "label": a.name,
-            "type": "financial_asset",
-            "asset_class": a.asset_class,
-            "value": a.current_value,
-            "change_pct": a.daily_change_pct,
-        })
-
-    # Macro Economic Nodes
-    macro_nodes = [
-        {"id": "macro-inflation", "label": "Headline Inflation (CPI)", "type": "macro_indicator", "epistemic_state": "DERIVED"},
-        {"id": "macro-bond_yields", "label": "US 10Y Sovereign Yields", "type": "sovereign_rate", "epistemic_state": "OBSERVED"},
-        {"id": "macro-equity_volatility", "label": "Equity Volatility (VIX)", "type": "volatility_index", "epistemic_state": "MODELLED"},
-    ]
-    nodes.extend(macro_nodes)
-
-    # Country -> Chokepoint Edges
-    edges.append({
-        "source": "country-irn",
-        "target": "cp-strait-of-hormuz",
-        "relationship": "sovereign_projection",
-        "weight": 0.95,
-        "confidence": 0.98,
-        "explanation": "Naval and missile projection directly flanking the 21-nautical-mile navigable maritime corridor.",
-        "epistemic_state": "OBSERVED",
-    })
-    edges.append({
-        "source": "country-twn",
-        "target": "cp-taiwan-strait",
-        "relationship": "territorial_chokepoint",
-        "weight": 0.92,
-        "confidence": 0.97,
-        "explanation": "Critical maritime chokepoint transited by 48% of global container vessel tonnage.",
-        "epistemic_state": "OBSERVED",
-    })
-
-    # Chokepoint -> Commodity Edges (with explanation)
-    edges.append({
-        "source": "cp-strait-of-hormuz",
-        "target": "comm-brent_crude",
-        "relationship": "oil_supply_artery",
-        "weight": 0.90,
-        "confidence": 0.96,
-        "explanation": "Transits 21 million barrels/day of petroleum liquids; disruption immediately constrains physical prompt crude.",
-        "epistemic_state": "DERIVED",
-    })
-    edges.append({
-        "source": "cp-bab-el-mandeb",
-        "target": "comm-container_scfi",
-        "relationship": "freight_bottleneck",
-        "weight": 0.88,
-        "confidence": 0.94,
-        "explanation": "Corridor disruption forces Cape of Good Hope rerouting, adding 10-14 transit days and spiking bunker fuel costs.",
-        "epistemic_state": "DERIVED",
-    })
-
-    # Commodity -> Financial Asset Edges
-    edges.append({
-        "source": "comm-brent_crude",
-        "target": "asset-brent",
-        "relationship": "benchmarks",
-        "weight": 1.0,
-        "confidence": 0.99,
-        "explanation": "Direct settlement benchmark for two-thirds of the world's physical seaborne crude contracts.",
-        "epistemic_state": "OBSERVED",
-    })
-
-    # Asset -> Macro Inflation
-    edges.append({
-        "source": "asset-brent",
-        "target": "macro-inflation",
-        "relationship": "cost_push_inflation",
-        "weight": 0.72,
-        "confidence": 0.91,
-        "explanation": "Crude price escalation feeds directly into refinery crack spreads, headline CPI, and transport logistics expenses.",
-        "epistemic_state": "MODELLED",
-    })
-
-    # Inflation -> Bond Yields
-    edges.append({
-        "source": "macro-inflation",
-        "target": "macro-bond_yields",
-        "relationship": "hawkish_monetary_reaction",
-        "weight": 0.68,
-        "confidence": 0.89,
-        "explanation": "Elevated inflation expectations trigger higher policy terminal rates, driving up 10-year sovereign yields.",
-        "epistemic_state": "MODELLED",
-    })
-
-    # Bond Yields -> Equity Volatility
-    edges.append({
-        "source": "macro-bond_yields",
-        "target": "macro-equity_volatility",
-        "relationship": "discount_rate_shock",
-        "weight": 0.64,
-        "confidence": 0.87,
-        "explanation": "Rising discount rates compress equity valuation multiples, triggering cross-asset hedging and VIX volatility surges.",
-        "epistemic_state": "SCENARIO",
-    })
-
-    # Container Freights -> Equity Margins
-    edges.append({
-        "source": "comm-container_scfi",
-        "target": "asset-spx",
-        "relationship": "margin_compression",
-        "weight": -0.45,
-        "confidence": 0.82,
-        "explanation": "Surging spot freight rates compress operating margins for multinational retail and industrial manufacturing firms.",
-        "epistemic_state": "MODELLED",
-    })
 
     return {
-        "node_count": len(nodes),
-        "edge_count": len(edges),
-        "nodes": nodes,
-        "edges": edges,
-        "canonical_cascades": [
-            {
-                "cascade_id": "hormuz_energy_shock",
-                "name": "Persian Gulf Oil Shock Transmission",
-                "sequence": [
-                    "country-irn",
-                    "cp-strait-of-hormuz",
-                    "comm-brent_crude",
-                    "asset-brent",
-                    "macro-inflation",
-                    "macro-bond_yields",
-                    "macro-equity_volatility",
-                ],
-                "description": "Iran → Strait of Hormuz → Oil supply → Brent → Inflation → Bond yields → Equity volatility",
-            },
-            {
-                "cascade_id": "red_sea_container_shock",
-                "name": "Red Sea Shipping Disruption Cascade",
-                "sequence": [
-                    "cp-bab-el-mandeb",
-                    "comm-container_scfi",
-                    "macro-inflation",
-                    "asset-spx",
-                ],
-                "description": "Bab el-Mandeb → Container Freight (SCFI) → Inflation → S&P 500 Margins",
-            }
-        ],
+        "source": source,
+        "target": target,
+        "path_length": len(path) - 1,
+        "nodes": path,
+        "transmission_steps": steps,
     }
+
+
+@router.get("/centrality")
+async def get_node_centrality() -> Dict[str, Dict[str, float]]:
+    """Computes PageRank and Betweenness Centrality for all nodes."""
+    return dynamic_risk_graph.compute_centrality()

@@ -78,11 +78,13 @@ app.include_router(research_direct_router, prefix="/api", tags=["Research Direct
 app.include_router(satellite_router, prefix="/api", tags=["Earth Observation (Satellite)"])
 app.include_router(markets_router, prefix="/api", tags=["Markets"])
 
-# Direct top-level Phase 1 & Phase 3 routes: /health, /events, /signals, /markets
+# Direct top-level Phase 1, Phase 3 & Phase 4 routes: /health, /events, /signals, /markets, /graph, /regimes
 app.include_router(health_router, tags=["Health (Root)"])
 app.include_router(events_router, tags=["Events (Root)"])
 app.include_router(signals_router, tags=["Signals (Root)"])
 app.include_router(markets_router, tags=["Markets (Root)"])
+app.include_router(graph_router, tags=["Graph (Root)"])
+app.include_router(regimes_router, tags=["Regimes (Root)"])
 
 
 @app.get("/")

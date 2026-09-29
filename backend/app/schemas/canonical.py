@@ -276,6 +276,14 @@ class RegimeState(BaseModel):
         ]
     )
     transition_probabilities: Dict[str, Dict[str, float]] = Field(default_factory=dict)
+    expected_durations: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Expected persistence duration for each regime in periods (1 / (1 - P_ii))"
+    )
+    feature_contributions: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Relative attribution of input features to the estimated regime"
+    )
     model_type: Literal["markov_switching", "hidden_markov_model", "deterministic_baseline"] = "markov_switching"
 
 
