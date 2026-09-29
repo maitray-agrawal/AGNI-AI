@@ -539,78 +539,120 @@ export const GlobalSignalField: React.FC<{ className?: string; liveCount?: numbe
           </div>
         )}
 
-        {/* ── Signal Detail Drawer (On Node Click) ───────────────────── */}
+        {/* ── Signal Detail Dossier Card (On Node Click) ─────────────── */}
         {activeSignal && (
           <div
-            className="absolute top-3 right-3 bottom-3 w-80 sm:w-96 rounded-xl shadow-2xl border p-5 z-30 flex flex-col justify-between animate-fadeIn bg-white/95 dark:bg-neutral-900/95 border-astra-sandstone-dark"
-            style={{ backdropFilter: 'blur(16px)' }}
+            className="absolute top-3 right-3 bottom-3 w-80 sm:w-[410px] max-w-[calc(100%-24px)] rounded-xl border z-30 flex flex-col justify-between animate-fadeIn text-stone-200 overflow-hidden"
+            style={{
+              background: 'linear-gradient(180deg, #171B22 0%, #111419 100%)',
+              borderColor: 'rgba(214, 197, 178, 0.18)',
+              boxShadow: '0 20px 50px -10px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.5)',
+            }}
           >
-            <div className="space-y-4 overflow-y-auto pr-1">
-              <div className="flex items-start justify-between gap-3 pb-3 border-b border-astra-sandstone-dark/50">
-                <div className="flex items-center gap-2">
+            {/* Header: Status Indicator + Location + Close */}
+            <div className="p-4 sm:p-5 pb-3 border-b border-white/[0.07] bg-white/[0.02]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-2.5 min-w-0">
                   <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: SEVERITY_COLORS[activeSignal.severity].fill }}
+                    className="w-2.5 h-2.5 rounded-full mt-1.5 shrink-0"
+                    style={{
+                      backgroundColor: SEVERITY_COLORS[activeSignal.severity].fill,
+                      boxShadow: `0 0 8px ${SEVERITY_COLORS[activeSignal.severity].fill}70`,
+                    }}
                   />
-                  <div>
-                    <h4 className="font-serif font-bold text-base text-astra-ink leading-tight">
+                  <div className="min-w-0">
+                    <h4 className="font-serif font-bold text-base sm:text-[17px] text-[#F7F4EE] leading-snug tracking-tight truncate">
                       {activeSignal.name}
                     </h4>
-                    <div className="font-mono text-[9px] text-astra-slate mt-0.5">
-                      {activeSignal.country} · {activeSignal.region}
+                    <div className="font-sans text-[11px] text-[#9E9689] mt-0.5 flex items-center gap-1.5">
+                      <span>{activeSignal.country}</span>
+                      <span className="text-stone-600">·</span>
+                      <span>{activeSignal.region}</span>
                     </div>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setActiveSignal(null)}
-                  className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 text-astra-slate"
+                  className="p-1 rounded-md text-stone-400 hover:text-stone-200 hover:bg-white/[0.08] transition-colors shrink-0 -mr-1 -mt-1"
                   aria-label="Close dossier"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
+            </div>
 
-              {/* Coordinates & Category Pill */}
-              <div className="flex items-center justify-between text-[9.5px] font-mono py-1">
-                <span className="px-2 py-0.5 rounded bg-astra-sandstone/50 border border-astra-sandstone-dark/60 text-astra-slate">
-                  LAT: {activeSignal.latitude.toFixed(2)}° · LON: {activeSignal.longitude.toFixed(2)}°
-                </span>
-                <span className="font-semibold text-agni-copper">
-                  {activeSignal.category}
-                </span>
-              </div>
-
-              {/* Headline */}
-              <div className="p-2.5 rounded-lg bg-astra-sandstone/30 border border-astra-sandstone-dark/60 font-serif text-xs font-semibold text-astra-ink">
-                "{activeSignal.headline}"
-              </div>
-
-              {/* Analytical Brief */}
-              <div className="space-y-1">
-                <div className="font-mono text-[8px] tracking-widest uppercase text-astra-slate font-bold">
-                  TACTICAL INTELLIGENCE BRIEF
+            {/* Structured Intelligence Body */}
+            <div className="px-4 sm:px-5 py-3.5 space-y-3.5 overflow-y-auto flex-1 custom-scrollbar">
+              {/* Coordinates Chip & Category Pill */}
+              <div className="flex items-center justify-between gap-2 text-[10px] font-mono">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-black/40 border border-white/[0.08] text-stone-300">
+                  <span className="text-stone-500 font-semibold">LAT:</span>
+                  <span>{activeSignal.latitude >= 0 ? `${activeSignal.latitude.toFixed(2)}°N` : `${Math.abs(activeSignal.latitude).toFixed(2)}°S`}</span>
+                  <span className="text-stone-600">·</span>
+                  <span className="text-stone-500 font-semibold">LON:</span>
+                  <span>{activeSignal.longitude >= 0 ? `${activeSignal.longitude.toFixed(2)}°E` : `${Math.abs(activeSignal.longitude).toFixed(2)}°W`}</span>
                 </div>
-                <p className="text-xs text-astra-slate leading-relaxed">
+                <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wider text-[#C86D3C] bg-[#C86D3C]/10 border border-[#C86D3C]/25">
+                  {activeSignal.category}
+                </div>
+              </div>
+
+              {/* Elevated Inset Surface: Primary Signal / Headline */}
+              <div
+                className="p-3 sm:p-3.5 rounded-lg border leading-snug"
+                style={{
+                  background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%)',
+                  borderColor: 'rgba(214, 197, 178, 0.14)',
+                  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.06)',
+                }}
+              >
+                <div className="text-[9.5px] font-mono uppercase tracking-widest text-[#D49A3D] mb-1.5 flex items-center gap-1.5 font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D49A3D]" />
+                  <span>PRIMARY SIGNAL TELEMETRY</span>
+                </div>
+                <p className="font-serif text-[13px] sm:text-[13.5px] font-semibold text-[#F7F4EE] leading-snug">
+                  "{activeSignal.headline}"
+                </p>
+              </div>
+
+              {/* Field 01: Tactical Intelligence Brief */}
+              <div className="space-y-1.5">
+                <div className="font-mono text-[9px] tracking-widest uppercase text-stone-400 font-bold flex items-center gap-1.5">
+                  <span className="text-stone-500">01 /</span>
+                  <span>TACTICAL INTELLIGENCE BRIEF</span>
+                </div>
+                <p className="text-[12px] text-stone-300 leading-relaxed font-sans bg-black/25 p-2.5 rounded border border-white/[0.05]">
                   {activeSignal.intelligenceBrief}
                 </p>
               </div>
 
-              {/* Strategic Impact */}
-              <div className="space-y-1">
-                <div className="font-mono text-[8px] tracking-widest uppercase text-agni-copper font-bold">
-                  STRATEGIC CHOKEPOINT IMPACT
+              {/* Field 02: Strategic Chokepoint Impact */}
+              <div className="space-y-1.5">
+                <div className="font-mono text-[9px] tracking-widest uppercase text-[#C86D3C] font-bold flex items-center gap-1.5">
+                  <span className="text-[#C86D3C]/60">02 /</span>
+                  <span>STRATEGIC CHOKEPOINT IMPACT</span>
                 </div>
-                <p className="text-xs text-astra-slate leading-relaxed">
+                <p className="text-[12px] text-stone-300 leading-relaxed font-sans bg-black/25 p-2.5 rounded border border-[#C86D3C]/20">
                   {activeSignal.strategicImpact}
                 </p>
               </div>
             </div>
 
-            {/* Bottom Telemetry Bar */}
-            <div className="pt-3 border-t border-astra-sandstone-dark/60 flex items-center justify-between font-mono text-[9px] text-astra-slate">
-              <span>ACTIVE CLUSTERS: {activeSignal.signalCount}</span>
-              <span className="text-agni-copper font-bold">STATUS: MONITORED</span>
+            {/* Bottom Status & Telemetry Bar */}
+            <div className="px-4 sm:px-5 py-3 border-t border-white/[0.08] bg-black/40 flex items-center justify-between font-mono text-[9.5px]">
+              <div className="flex items-center gap-2">
+                <span className="text-stone-400 uppercase tracking-wider text-[9px]">ACTIVE CLUSTERS:</span>
+                <span className="font-bold text-stone-200 px-1.5 py-0.5 rounded bg-white/[0.07] border border-white/[0.09]">
+                  {activeSignal.signalCount}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-stone-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                <span className="text-stone-400 text-[9px] uppercase tracking-wider">STATUS:</span>
+                <span className="font-semibold text-[#C86D3C] tracking-wide">MONITORED</span>
+              </div>
             </div>
           </div>
         )}
