@@ -1,0 +1,38 @@
+[
+  {
+    "observation_id": "macro-gpr-2026-09",
+    "country_code": "GLOBAL",
+    "indicator_code": "GPR_INDEX",
+    "timestamp": "2026-09-01T00:00:00Z",
+    "available_at": "2026-09-02T12:00:00Z",
+    "value": 142.8,
+    "unit": "points",
+    "frequency": "monthly",
+    "source": "Federal Reserve Board Research",
+    "is_demo_data": true
+  },
+  {
+    "observation_id": "macro-us-cpi-2026-08",
+    "country_code": "USA",
+    "indicator_code": "CPI_YOY",
+    "timestamp": "2026-08-31T23:59:59Z",
+    "available_at": "2026-09-11T12:30:00Z",
+    "value": 2.85,
+    "unit": "percent",
+    "frequency": "monthly",
+    "source": "US Bureau of Labor Statistics",
+    "is_demo_data": true
+  },
+  {
+    "observation_id": "macro-regime-est",
+    "country_code": "GLOBAL",
+    "indicator_code": "SOVEREIGN_STRESS",
+    "timestamp": "2026-09-29T12:00:00Z",
+    "available_at": "2026-09-29T12:00:00Z",
+    "value": 68.4,
+    "unit": "score_0_100",
+    "frequency": "daily",
+    "source": "AGNI Hamilton Switching Model",
+    "is_demo_data": true
+  }
+]

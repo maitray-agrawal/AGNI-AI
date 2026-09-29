@@ -1,0 +1,53 @@
+[
+  {
+    "commodity_id": "BRENT_CRUDE",
+    "name": "Brent Crude Oil",
+    "category": "Energy",
+    "benchmark_unit": "USD/bbl",
+    "primary_chokepoint_dependencies": [
+      "strait-of-hormuz",
+      "suez-canal"
+    ]
+  },
+  {
+    "commodity_id": "NATURAL_GAS_TTF",
+    "name": "Dutch TTF Natural Gas",
+    "category": "Energy",
+    "benchmark_unit": "EUR/MWh",
+    "primary_chokepoint_dependencies": [
+      "suez-canal",
+      "bab-el-mandeb"
+    ]
+  },
+  {
+    "commodity_id": "CONTAINER_SCFI",
+    "name": "Shanghai Containerized Freight Index",
+    "category": "Freight Logistics",
+    "benchmark_unit": "USD/TEU",
+    "primary_chokepoint_dependencies": [
+      "bab-el-mandeb",
+      "suez-canal",
+      "panama-canal"
+    ]
+  },
+  {
+    "commodity_id": "COPPER_GRADE_A",
+    "name": "LME Copper Grade A",
+    "category": "Industrial Metals",
+    "benchmark_unit": "USD/MT",
+    "primary_chokepoint_dependencies": [
+      "panama-canal",
+      "strait-of-malacca"
+    ]
+  },
+  {
+    "commodity_id": "WHEAT_MILLING",
+    "name": "Milling Wheat",
+    "category": "Agricultural",
+    "benchmark_unit": "USD/bu",
+    "primary_chokepoint_dependencies": [
+      "bosphorus-strait",
+      "suez-canal"
+    ]
+  }
+]

@@ -1,0 +1,35 @@
+# AGNI Sovereign Research Intelligence Configuration
+app_name: "AGNI Research Intelligence"
+app_version: "2.0.0"
+environment: "production_sovereign"
+air_gapped: true
+
+# Epistemic Provenance
+epistemic_states:
+  - "OBSERVED"
+  - "DERIVED"
+  - "MODELLED"
+  - "SCENARIO"
+
+# Seed & Reproducibility
+seed: 42
+fixed_timestamp: "2026-09-29T12:00:00Z"
+
+# Analytical Storage
+storage:
+  type: "duckdb_columnar"
+  duckdb_memory_limit: "4GB"
+  parquet_compression: "zstd"
+  strict_point_in_time: true
+
+# Risk Engine Weights
+risk_engine:
+  severity_weights:
+    critical: 1.00
+    high: 0.80
+    elevated: 0.60
+    moderate: 0.40
+    low: 0.20
+    info: 0.05
+  chokepoint_amplification: 1.35
+  max_transmission_hops: 5

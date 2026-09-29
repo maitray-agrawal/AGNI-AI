@@ -1,0 +1,56 @@
+[
+  {
+    "country_code": "IRN",
+    "name": "Islamic Republic of Iran",
+    "region": "Middle East",
+    "latitude": 32.4279,
+    "longitude": 53.688,
+    "gdp_usd_billions": 388.8,
+    "geopolitical_risk_index": 148.5
+  },
+  {
+    "country_code": "TWN",
+    "name": "Taiwan",
+    "region": "East Asia",
+    "latitude": 23.6978,
+    "longitude": 120.9605,
+    "gdp_usd_billions": 756.2,
+    "geopolitical_risk_index": 136.2
+  },
+  {
+    "country_code": "YEM",
+    "name": "Yemen",
+    "region": "Middle East",
+    "latitude": 15.5527,
+    "longitude": 48.5164,
+    "gdp_usd_billions": 21.6,
+    "geopolitical_risk_index": 182.0
+  },
+  {
+    "country_code": "PAN",
+    "name": "Panama",
+    "region": "Latin America",
+    "latitude": 8.538,
+    "longitude": -80.7821,
+    "gdp_usd_billions": 76.5,
+    "geopolitical_risk_index": 62.4
+  },
+  {
+    "country_code": "EGY",
+    "name": "Egypt",
+    "region": "Middle East / North Africa",
+    "latitude": 26.8206,
+    "longitude": 30.8025,
+    "gdp_usd_billions": 398.4,
+    "geopolitical_risk_index": 115.0
+  },
+  {
+    "country_code": "SGP",
+    "name": "Singapore",
+    "region": "Southeast Asia",
+    "latitude": 1.3521,
+    "longitude": 103.8198,
+    "gdp_usd_billions": 501.4,
+    "geopolitical_risk_index": 45.0
+  }
+]

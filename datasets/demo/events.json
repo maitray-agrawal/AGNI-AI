@@ -1,0 +1,175 @@
+[
+  {
+    "event_id": "evt-demo-001",
+    "timestamp": "2026-09-29T08:00:00Z",
+    "event_type": "maritime_disruption",
+    "title": "Bab el-Mandeb Anti-Ship Drone Strike",
+    "description": "Commercial container vessel targeted by unmanned aerial vehicle in the southern Red Sea transit corridor, precipitating commercial rerouting around the Cape of Good Hope.",
+    "country": "Yemen",
+    "region": "Middle East",
+    "latitude": 12.5833,
+    "longitude": 43.3333,
+    "severity": "critical",
+    "confidence": 0.94,
+    "source": "AstraX Maritime Stream (AIS Verified)",
+    "affected_assets": [
+      "BRENT",
+      "VIX"
+    ],
+    "affected_commodities": [
+      "CONTAINER_SCFI",
+      "BRENT_CRUDE"
+    ],
+    "affected_routes": [
+      "asia-europe-suez"
+    ],
+    "transmission_channels": [
+      "Missile Strike",
+      "Cape Rerouting",
+      "Transit Delay (+12D)",
+      "Bunker Fuel Surcharge"
+    ],
+    "is_demo_data": true,
+    "evidence": [
+      {
+        "evidence_id": "ev-001-obs",
+        "timestamp": "2026-09-29T08:05:00Z",
+        "evidence_state": "OBSERVED",
+        "source_name": "UKMTO Advisory Notice 041/2026",
+        "headline": "Verified kinetic impact coordinate 12.58N, 43.33E",
+        "confidence": 0.98,
+        "extracted_text": "Vessel struck on port quarter, no casualties reported, vessel continuing at reduced speed.",
+        "is_air_gapped": true
+      },
+      {
+        "evidence_id": "ev-001-der",
+        "timestamp": "2026-09-29T08:20:00Z",
+        "evidence_state": "DERIVED",
+        "source_name": "AGNI AIS Kinematic Calculator",
+        "headline": "38 commercial vessels executing 180-degree diversion",
+        "confidence": 0.92,
+        "extracted_text": "Kinematic vector analysis confirms diversion from Red Sea towards Cape of Good Hope route.",
+        "is_air_gapped": true
+      },
+      {
+        "evidence_id": "ev-001-mod",
+        "timestamp": "2026-09-29T08:30:00Z",
+        "evidence_state": "MODELLED",
+        "source_name": "AGNI Event-Conditioned Forecaster",
+        "headline": "Spot container rates projected +28% over 14-day horizon",
+        "confidence": 0.88,
+        "is_air_gapped": true
+      },
+      {
+        "evidence_id": "ev-001-sce",
+        "timestamp": "2026-09-29T08:45:00Z",
+        "evidence_state": "SCENARIO",
+        "source_name": "AGNI Stress Engine Severe Run",
+        "headline": "Full corridor closure adds $1.8M voyage cost per round-trip",
+        "confidence": 0.75,
+        "is_air_gapped": true
+      }
+    ]
+  },
+  {
+    "event_id": "evt-demo-002",
+    "timestamp": "2026-09-29T09:15:00Z",
+    "event_type": "energy_disruption",
+    "title": "Strait of Hormuz Tanker Escort Probes",
+    "description": "Naval patrol vessels conduct close intercept maneuvers against commercial Suezmax crude tankers in the outbound traffic separation scheme.",
+    "country": "Iran",
+    "region": "Middle East",
+    "latitude": 26.5667,
+    "longitude": 56.25,
+    "severity": "high",
+    "confidence": 0.91,
+    "source": "AstraX Sovereign Telemetry",
+    "affected_assets": [
+      "BRENT",
+      "VIX"
+    ],
+    "affected_commodities": [
+      "BRENT_CRUDE"
+    ],
+    "affected_routes": [
+      "gulf-asia-tanker"
+    ],
+    "transmission_channels": [
+      "Naval Probe",
+      "War Risk Premium (+40bps)",
+      "Brent Prompt Crack Spread Surge"
+    ],
+    "is_demo_data": true,
+    "evidence": [
+      {
+        "evidence_id": "ev-002-obs",
+        "timestamp": "2026-09-29T09:20:00Z",
+        "evidence_state": "OBSERVED",
+        "source_name": "Joint Maritime Information Center (JMIC)",
+        "headline": "Vessel bridge VHF recording confirms intercept warnings",
+        "confidence": 0.96,
+        "is_air_gapped": true
+      },
+      {
+        "evidence_id": "ev-002-mod",
+        "timestamp": "2026-09-29T09:35:00Z",
+        "evidence_state": "MODELLED",
+        "source_name": "Hamilton Markov Regime Detector",
+        "headline": "Energy volatility state shifts from ELEVATED to STRESSED",
+        "confidence": 0.86,
+        "is_air_gapped": true
+      }
+    ]
+  },
+  {
+    "event_id": "evt-demo-003",
+    "timestamp": "2026-09-29T10:30:00Z",
+    "event_type": "natural_hazard",
+    "title": "Panama Canal Gatun Lake Draft Restrictions",
+    "description": "Panama Canal Authority institutes fresh draft restriction of 43.5 feet following prolonged seasonal watershed precipitation deficits.",
+    "country": "Panama",
+    "region": "Latin America",
+    "latitude": 9.08,
+    "longitude": -79.68,
+    "severity": "elevated",
+    "confidence": 0.98,
+    "source": "Panama Canal Authority Advisory A-22-2026",
+    "affected_assets": [
+      "SPX"
+    ],
+    "affected_commodities": [
+      "CONTAINER_SCFI",
+      "COPPER_GRADE_A"
+    ],
+    "affected_routes": [
+      "transpacific-us-east"
+    ],
+    "transmission_channels": [
+      "Draft Cut",
+      "Slots Reduced",
+      "Auction Slot Premium Surge",
+      "Transit Delay (+6D)"
+    ],
+    "is_demo_data": true,
+    "evidence": [
+      {
+        "evidence_id": "ev-003-obs",
+        "timestamp": "2026-09-29T10:35:00Z",
+        "evidence_state": "OBSERVED",
+        "source_name": "ACP Official Advisory",
+        "headline": "Maximum allowable draft reduction to 43.5 feet Tropical Fresh Water",
+        "confidence": 0.99,
+        "is_air_gapped": true
+      },
+      {
+        "evidence_id": "ev-003-der",
+        "timestamp": "2026-09-29T10:50:00Z",
+        "evidence_state": "DERIVED",
+        "source_name": "AGNI Canal Queue Model",
+        "headline": "Anchorage wait time extends from 48 to 144 hours",
+        "confidence": 0.9,
+        "is_air_gapped": true
+      }
+    ]
+  }
+]

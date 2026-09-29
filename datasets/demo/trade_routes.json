@@ -1,0 +1,38 @@
+[
+  {
+    "route_id": "asia-europe-suez",
+    "name": "Asia to North Europe via Suez Canal",
+    "origin_region": "East Asia",
+    "destination_region": "North Europe",
+    "traversed_chokepoints": [
+      "strait-of-malacca",
+      "bab-el-mandeb",
+      "suez-canal"
+    ],
+    "average_transit_days": 28.0,
+    "current_delay_days": 10.5
+  },
+  {
+    "route_id": "gulf-asia-tanker",
+    "name": "Persian Gulf to East Asia VLCC Route",
+    "origin_region": "Middle East",
+    "destination_region": "East Asia",
+    "traversed_chokepoints": [
+      "strait-of-hormuz",
+      "strait-of-malacca"
+    ],
+    "average_transit_days": 18.0,
+    "current_delay_days": 2.0
+  },
+  {
+    "route_id": "transpacific-us-east",
+    "name": "Transpacific Asia to US East Coast via Panama",
+    "origin_region": "East Asia",
+    "destination_region": "US East Coast",
+    "traversed_chokepoints": [
+      "panama-canal"
+    ],
+    "average_transit_days": 24.0,
+    "current_delay_days": 6.0
+  }
+]

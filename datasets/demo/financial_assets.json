@@ -1,0 +1,42 @@
+[
+  {
+    "asset_id": "BRENT",
+    "name": "Brent Crude Front Month",
+    "asset_class": "commodity",
+    "currency": "USD",
+    "current_value": 82.45,
+    "daily_change_pct": 1.84
+  },
+  {
+    "asset_id": "SPX",
+    "name": "S&P 500 Index",
+    "asset_class": "equity_index",
+    "currency": "USD",
+    "current_value": 5815.2,
+    "daily_change_pct": -0.42
+  },
+  {
+    "asset_id": "US10Y",
+    "name": "US 10-Year Treasury Benchmark Yield",
+    "asset_class": "sovereign_bond",
+    "currency": "USD",
+    "current_value": 4.28,
+    "daily_change_pct": 0.05
+  },
+  {
+    "asset_id": "VIX",
+    "name": "CBOE Volatility Index",
+    "asset_class": "volatility",
+    "currency": "USD",
+    "current_value": 17.65,
+    "daily_change_pct": 8.2
+  },
+  {
+    "asset_id": "DXY",
+    "name": "US Dollar Currency Index",
+    "asset_class": "fx_rate",
+    "currency": "USD",
+    "current_value": 104.12,
+    "daily_change_pct": 0.35
+  }
+]

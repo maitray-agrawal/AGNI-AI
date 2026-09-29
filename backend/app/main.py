@@ -60,7 +60,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount API routers
 app.include_router(health_router, prefix="/api", tags=["Health"])
 app.include_router(models_router, prefix="/api", tags=["Models"])
 app.include_router(tasks_router, prefix="/api", tags=["Tasks"])
@@ -76,6 +75,11 @@ app.include_router(graph_router, prefix="/api", tags=["Graph"])
 app.include_router(research_router, prefix="/api", tags=["Research"])
 app.include_router(research_direct_router, prefix="/api", tags=["Research Direct"])
 app.include_router(satellite_router, prefix="/api", tags=["Earth Observation (Satellite)"])
+
+# Direct top-level Phase 1 routes: /health, /events, /signals
+app.include_router(health_router, tags=["Health (Root)"])
+app.include_router(events_router, tags=["Events (Root)"])
+app.include_router(signals_router, tags=["Signals (Root)"])
 
 
 @app.get("/")
