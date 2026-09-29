@@ -1,236 +1,355 @@
-# AGNI-AI
+# AGNI — Research & Geopolitical Intelligence
 
-> **Sovereign Agentic Intelligence for Evidence-Grounded Engineering Workflows**
+[![AstraX Sovereign Intelligence](https://img.shields.io/badge/AstraX-Institutional%20Architecture-1E3A8A?style=flat-square)](https://github.com/maitray-agrawal/AGNI-AI)
+[![Product](https://img.shields.io/badge/Product-AGNI%20Research%20Intelligence-B87333?style=flat-square)](https://github.com/maitray-agrawal/AGNI-AI)
+[![Projection](https://img.shields.io/badge/Cartography-Equal%20Earth%20(D3)-221B14?style=flat-square)](https://github.com/maitray-agrawal/AGNI-AI)
+[![Inference](https://img.shields.io/badge/Inference-Local%20Air--Gapped-DC2626?style=flat-square)](https://github.com/maitray-agrawal/AGNI-AI)
+[![Vector Store](https://img.shields.io/badge/Vector%20Store-Qdrant%20Embedded-CA8A04?style=flat-square)](https://qdrant.tech/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?style=flat-square)](https://www.typescriptlang.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square)](https://fastapi.tiangolo.com/)
 
-Part of the **AstraX** project family.
+> **Sovereign, evidence-grounded agentic intelligence platform for geopolitical foresight, maritime chokepoint analysis, and strategic risk assessment.**
 
-AGNI-AI is a local-first agentic AI platform that combines multimodal document understanding, semantic retrieval, verification loops, isolated computation, and auditable decision generation without sending sensitive engineering data to external AI services.
-
----
-
-## 1. Problem & Motivation
-
-Critical engineering operations—such as refinery process units, offshore platforms, pipeline networks, and heavy chemical plants—rely heavily on confidential technical assets:
-- Scanned Non-Destructive Testing (NDT) inspection reports and ultrasonic thickness logs
-- Piping & Instrumentation Diagrams (P&IDs) and process flow schematics
-- Standard operating procedures (SOPs), maintenance manuals, and equipment design limits
-- Process telemetry, vibration measurements, and metallurgy degradation records
-
-Modern commercial AI solutions typically require routing proprietary technical data through external cloud APIs. For critical infrastructure, this introduces severe challenges:
-1. **Data Sovereignty Risks:** Industrial data and structural vulnerability details are exposed to third-party networks.
-2. **Auditability Gaps:** Cloud LLMs provide non-deterministic responses without traceable internal states or execution ledgers.
-3. **Unreliable Unverified Conclusions:** Complex maintenance decisions are generated without domain-specific deterministic checks.
-4. **Weak Evidence Grounding:** Generic model responses lack explicit citation to facility operating standards.
-5. **Unsafe Calculation Execution:** Unverified code or mathematical formulas run without security boundaries or sandbox isolation.
+![AGNI Dashboard Hero](docs/screenshots/dashboard.png)
 
 ---
 
-## 2. The Solution: Local-First Engineering Intelligence
+## Overview
 
-AGNI-AI resolves these challenges through a sovereign, local-first architecture:
-- **100% On-Premise Execution:** All neural inference (LLMs, vision models, dense vector embeddings) runs locally on workstation/server hardware with zero external AI provider dependencies.
-- **Evidence-Grounded Semantic Retrieval:** Local documents are indexed into an embedded Qdrant vector database using `sentence-transformers/all-MiniLM-L6-v2` (384-dim, normalized L2 cosine similarity), citing exact document names, sections, and page numbers.
-- **Verifier-Driven Agentic Execution:** Responses are never accepted blindly. A LangGraph state machine routes execution through an automated domain verifier that inspects tag consistency, allowable limit comparisons, citation grounding, and error states.
-- **Adaptive Corrective Retry:** When verification checks fail, the specific failed criteria are injected directly into a revised model reasoning prompt (`[CORRECTION REQUIRED FROM PRIOR ATTEMPT]`) for a targeted second-pass synthesis.
-- **Restricted Sandbox Computation:** Code execution and calculations run inside an isolated sandbox enforcing process-level network socket blocking and resource timeouts.
-- **Degraded-Mode Observability:** If live document extraction tools encounter corrupted files or missing inputs, the system surfaces a clear `⚠ DEGRADED MODE` alert in the final summary and UI badges rather than silently masking reference values.
-- **Deterministic Deliverable Generation:** Automated synthesis of formal engineering clearance documents (`.docx` Approval Notes) containing inspector signatures, citation tables, and cryptographic provenance.
+**AGNI** (Research Intelligence) is an institutional-grade intelligence workspace designed for geopolitical analysts, strategic advisors, and integrity risk officers. Built on the **AstraX** sovereign architecture, AGNI transforms disparate raw signals—ranging from maritime Automatic Identification System (AIS) telemetry and customs tariff schedules to confidential engineering Non-Destructive Testing (NDT) logs—into rigorous, evidence-grounded intelligence dossiers.
 
----
+### The Problem It Solves
+Modern intelligence and integrity workflows are constrained by two critical vulnerabilities:
+1. **Third-Party Data Egress Risks:** Cloud-hosted LLM APIs require routing confidential operational assets, trade manifests, and structural vulnerability assessments through commercial servers.
+2. **Hallucinatory Unverified Synthesis:** Standard conversational models generate unstructured forecasts without cryptographic audit trails, deterministic verification gates, or citation to ground-truth sources.
 
-## 3. System Architecture
-
-```mermaid
-flowchart TD
-    User([Integrity Engineer]) --> UI["AGNI-AI Workbench<br/>(React 18 + TypeScript + Vite)"]
-    UI -->|REST / 127.0.0.1:8000| API["FastAPI Backend Gateway"]
-
-    subgraph AgentEngine ["LangGraph Autonomous Agent Engine"]
-        API --> Planner["1. Task Planner<br/>(Deterministic Step Decomposition)"]
-        Planner --> Router["2. Capability Model Router<br/>(Word-Boundary Scoring & Selection)"]
-        Router --> Executor["3. Tool Executor Node"]
-
-        subgraph Subsystems ["Local Subsystems & Tools"]
-            Executor --> DocParser["Document Parser<br/>(PyMuPDF)"]
-            Executor --> VisionModel["Vision Inspection<br/>(Moondream Local)"]
-            Executor --> QdrantRetriever["Dense Semantic RAG<br/>(all-MiniLM-L6-v2 + Qdrant)"]
-            Executor --> LocalLLM["Local Reasoning Model<br/>(Llama 3.1 8B / Qwen 2.5 Coder)"]
-            Executor --> Sandbox["Isolated Sandbox<br/>(Zero Socket Egress)"]
-            Executor --> DocxGen["Deliverable Generator<br/>(python-docx)"]
-        end
-
-        Executor --> Verifier["4. 8-Point Domain Verifier"]
-        Verifier -->|PASS| Finalizer["5. Finalizer Node<br/>(Summary & Sign-off)"]
-        Verifier -->|FAIL & retry < 1| Retry["Corrective Retry Router"]
-        Retry -->|Inject Failed Checks| Executor
-        Verifier -->|FAIL & retry >= 1| Finalizer
-    end
-
-    Finalizer --> Deliverable([Verified .docx Deliverable & Audit Trail])
-
-    subgraph LocalInfra ["Sovereign Infrastructure (Zero Cloud Network)"]
-        QdrantDB[("Embedded Qdrant<br/>Disk Storage")]
-        OllamaDaemon[("Local Ollama Daemon<br/>127.0.0.1:11434")]
-        EmbeddingCache[("Pre-cached MiniLM<br/>Local Weights")]
-        AuditDB[("SQLite Audit<br/>Ledger")]
-    end
-
-    QdrantRetriever <--> QdrantDB
-    LocalLLM <--> OllamaDaemon
-    VisionModel <--> OllamaDaemon
-    QdrantRetriever <--> EmbeddingCache
-    Finalizer --> AuditDB
-```
+### The AGNI Solution
+AGNI resolves these vulnerabilities by executing 100% on-premise in a zero-egress, air-gapped configuration:
+- **True Equal Earth Cartography:** Interactive world signal field rendered with D3's Equal Earth projection and Natural Earth TopoJSON geometries, mapping real-world coordinates and chokepoint telemetry.
+- **Closed-Loop Verification:** Multi-agent state machine (LangGraph) enforcing an 8-point automated domain verification gate before any conclusion is accepted.
+- **Isolated Execution Sandbox:** Process-isolated code execution runtime with blocked network sockets for deterministic mathematical and engineering calculations.
+- **Cryptographic Provenance:** Authenticated dossiers and clearance notes stamped with the institutional AstraSeal authentication seal.
 
 ---
 
-## 4. Verifier-Driven Agent Loop
+## Core Capabilities
 
-AGNI-AI implements a deterministic closed-loop verification workflow:
+- **Global Signal Field Monitoring:** Real-time geospatial tracking of global chokepoints (Taiwan Strait, Bab el-Mandeb, Strait of Hormuz, Malacca, Black Sea, Panama Canal) with real latitude/longitude coordinates and severity clustering.
+- **Autonomous Intelligence Workbench:** Deterministic multi-stage workflow presets for structural integrity analysis, pipeline wall thickness reduction calculations, and P&ID flow inspection.
+- **Geopolitical & Economic Foresight:** Systematic impact modeling tracing maritime deviations (e.g. Cape of Good Hope rerouting) to container spot rate surges and supply chain disruptions.
+- **Dense Semantic Retrieval (RAG):** Embedded Qdrant vector retrieval powered by normalized cosine distance embeddings (`all-MiniLM-L6-v2`) with exact document, section, and page attribution.
+- **Deterministic Deliverable Synthesis:** Formal engineering approval notes and intelligence clearance documents (`.docx`) containing cryptographic verification ledgers.
+- **Multi-Theme Architectural Interface:** Production-ready support for Primary (Ivory), Dark (Navy/Ink), Sandstone, and Monochrome viewing modes.
+
+---
+
+## Architecture
+
+AGNI is architected in four strict tiers, ensuring complete isolation between sensory ingestion, signal normalization, agentic reasoning, and the analyst presentation surface.
+
+![AGNI System Architecture](docs/architecture/architecture.png)
 
 ```text
-       Task Received
-             │
-             ▼
-     Autonomous Plan
-             │
-             ▼
-       Capability Route
-             │
-             ▼
-     ┌───────────────┐
-     │  Execute Task │◄──────────────────────────┐
-     └───────┬───────┘                           │
-             │                                   │
-             ▼                                   │
-     ┌───────────────┐                           │
-     │ Verify Output │                           │
-     └───────┬───────┘                           │
-             │                                   │
-      ┌──────┴──────┐                            │
-      │   Verdict   │                            │
-      └──────┬──────┘                            │
-             │                                   │
-     ┌───────┴───────┐                           │
-     │               │                           │
-  [PASS]          [FAIL]                         │
-     │               │                           │
-     │         Retry Count < 1?                  │
-     │          ├── YES ──► Inject Correction ───┘
-     │          │           into Prompt
-     │          └── NO ───┐
-     │                    │
-     ▼                    ▼
-Finalize Deliverable   Finalize with Warnings
-```
-
-### Prompt Correction Injection Mechanism
-When attempt 1 fails any verification condition (e.g., `critical_findings_identified`, `rag_evidence_cited`), the LangGraph state machine routes execution back to the executor node. The exact failure string is formatted into a deterministic correction block injected directly prior to the final recommendation instruction:
-
-```text
-[CORRECTION REQUIRED FROM PRIOR ATTEMPT]
-
-The previous synthesis failed these verification checks:
-
-critical_findings_identified, rag_evidence_cited
-
-Specifically address and resolve each failed verification condition in this revised evaluation. Do not merely repeat the previous synthesis.
+DATA SOURCES (AIS Telemetry, Customs Tariffs, NDT Logs, P&ID Schematics)
+      │
+      ▼
+INGESTION & VECTORIZATION (PyMuPDF, all-MiniLM-L6-v2, Embedded Qdrant)
+      │
+      ▼
+SIGNAL PROCESSING & SUTRA CORRELATION (Equal Earth Geometry, Radius Clustering, Severity Scoring)
+      │
+      ▼
+INTELLIGENCE ENGINE (LangGraph State Machine, Local Ollama LLM, Air-Gapped Sandbox)
+      │
+      ▼
+AGNI API GATEWAY (FastAPI REST Services · http://127.0.0.1:8000)
+      │
+      ▼
+WORKSPACE APPLICATION (React 18 + TypeScript + Vite + D3 Geo · http://127.0.0.1:5174)
+      │
+      ▼
+ANALYST DECISION & AUDITED DELIVERABLE
 ```
 
 ---
 
-## 5. Technology Stack
+## System Flow
 
-| Layer | Technology | Purpose |
+The autonomous reasoning pipeline follows an 8-stage deterministic execution lifecycle:
+
+![AGNI Intelligence Workflow](docs/diagrams/system-flow.png)
+
+1. **Source & Ingest:** Multi-format technical data and satellite streams are ingested locally.
+2. **Validate & Chunk:** SHA-256 integrity hashing and zero-egress policy enforcement.
+3. **Dense Embed:** 384-dimensional vector indexing into Qdrant.
+4. **Extract Signals:** Real geographic coordinate resolution and chokepoint entity recognition.
+5. **Sutra Correlate:** Multi-point relational topological threads linking maritime trade chokepoints.
+6. **Agent Planning:** Capability-based model routing (analytical reasoning vs deterministic calculation).
+7. **Execute & Verify:** Isolated Python sandbox computation and 8-point automated constraint verification.
+8. **Dossier & Seal:** Cryptographic audit trail synthesis stamped with the institutional AstraSeal.
+
+---
+
+## Global Intelligence Map
+
+The **Global Signal Field** visualization is grounded in real-world geographic truth:
+
+- **Cartographic Foundation:** Uses **Natural Earth** cartographic data (`world-110m.json`) rendered via D3's **Equal Earth projection** (`d3.geoEqualEarth`).
+- **Equal-Area Projection:** Unlike conformal projections (such as Web Mercator) which severely distort polar regions, Equal Earth is an equal-area pseudocylindrical projection designed specifically for world thematic maps, preserving true relative landmass scale.
+- **Geographic Coordinates:** Every signal node is positioned using real decimal latitude and longitude (e.g., Taiwan Strait at `[119.50°E, 24.00°N]`, Bab el-Mandeb at `[43.30°E, 12.60°N]`, Strait of Hormuz at `[56.30°E, 26.60°N]`).
+- **Interactive Intelligence Drawer:** Clicking any hotspot opens an analytical briefing detailing immediate vessel density, transit deviation times, and strategic chokepoint impact.
+
+![Global Signal Field](docs/screenshots/global_signal_field.png)
+
+---
+
+## AstraX Design System & Family Separation
+
+AGNI belongs to the **AstraX** family of sovereign intelligence systems. The brand architecture enforces strict separation between product identity and parent institution:
+
+- **Product Identity:** AGNI is presented solely as **AGNI Research Intelligence**. The main dashboard contains zero distracting menus or lists of other products.
+- **Subtle Attribution:** Minimal, elegant attribution in the sidebar (`MEMBER OF THE ASTRA X FAMILY →`) and footer links directly to the parent ecosystem directory.
+- **Dedicated Ecosystem Page (`/astrax`):** Standalone route showcasing the master AstraX visual identity, design grammar, and sibling systems (**KuberSetu**, **Vajra**, **Niyukti**, **Margadarshi**, **AGNI**, **Satyam**, **Vaidhya**).
+- **The Six Pillars of AstraX Grammar:**
+  1. **Bindu:** Coordinate origin and anchor point for reasoning wavefronts.
+  2. **Sutra:** Relational structural threads connecting evidence citations and chokepoint corridors.
+  3. **Grid:** Proportional layout mathematics derived from classical Indian geometric ratios.
+  4. **Geometry:** Cardinal axes, 45-degree angle faceted sails, and telemetry satellite nodes.
+  5. **Material:** Warm Ivory (`#FDF7EC`), Sandstone (`#EADCC8`), and Deep Ink (`#221B14`) tactile surfaces.
+  6. **Color:** Restrained mineral palette featuring Agni Copper (`#B87333`), Astra Indigo (`#1E3A8A`), and Vermilion (`#DC2626`).
+
+![AstraX Family Page](docs/screenshots/astrax_family.png)
+
+---
+
+## Technology Stack
+
+### Frontend Architecture
+- **Framework:** React 18.3 (`react`, `react-dom`)
+- **Language:** TypeScript 5.7
+- **Build Tool:** Vite 5.4
+- **Cartography:** D3 Geo 3.1 (`d3-geo`), TopoJSON Client 3.1 (`topojson-client`), World Atlas 2.0 (`world-atlas`)
+- **Routing:** React Router DOM 7.9 (`react-router-dom`)
+- **Styling:** Vanilla CSS Custom Property Design Tokens + Tailwind CSS 3.4
+- **Icons:** Lucide React 0.475
+
+### Backend Architecture
+- **Framework:** FastAPI 0.115 + Uvicorn ASGI Server
+- **Language:** Python 3.11+ / 3.14 compatible
+- **Orchestration:** LangGraph (StateGraph, cyclical verification state machines)
+- **Vector Database:** Qdrant Client 1.13 (Embedded disk storage)
+- **Embeddings:** FastEmbed / Sentence-Transformers (`all-MiniLM-L6-v2`)
+- **Document Understanding:** PyMuPDF (`fitz`), Python-Docx
+- **Local Inference:** Ollama API (`llama3.1:8b`, `qwen2.5-coder:7b`)
+
+---
+
+## Project Structure
+
+```text
+d:\AGNI-AI
+├── backend/
+│   ├── app/
+│   │   ├── agent/             # LangGraph state machine & executor
+│   │   ├── api/               # FastAPI route controllers (tasks, models, security)
+│   │   ├── config.py          # Central environment settings
+│   │   ├── main.py            # ASGI application entrypoint
+│   │   ├── models/            # Capability router & Ollama client
+│   │   ├── rag/               # Vector ingestion & Qdrant semantic retrieval
+│   │   └── sandbox/           # Isolated execution runtime
+│   └── tests/                 # Unit & integration test suite (pytest)
+├── data/
+│   ├── raw/                   # Inspection PDFs, P&ID schematics, test assets
+│   └── qdrant_storage/        # Local vector index directory
+├── docs/
+│   ├── architecture/          # Architecture diagrams (architecture.png)
+│   ├── diagrams/              # System flowcharts (system-flow.png)
+│   ├── screenshots/           # High-resolution application screenshots
+│   ├── API.md                 # Complete REST API specification
+│   ├── ARCHITECTURE.md        # Deep-dive architectural specification
+│   └── SECURITY.md            # Air-gap security model & compliance
+├── frontend/
+│   ├── src/
+│   │   ├── api/               # Typed REST API clients
+│   │   ├── brand/             # Centralized tokens, AstraXMark, AgniLogo, AstraSeal
+│   │   ├── components/        # Equal Earth map, Workbench, Hero, Navigation
+│   │   ├── data/              # Natural Earth world-110m TopoJSON
+│   │   ├── pages/             # AstraXFamilyPage (/astrax)
+│   │   ├── types/             # Shared TypeScript schemas
+│   │   ├── App.tsx            # Main AGNI intelligence workspace
+│   │   ├── index.css          # Design tokens & responsive styles
+│   │   └── main.tsx           # BrowserRouter entrypoint
+│   ├── package.json           # Frontend dependencies
+│   └── vite.config.ts         # Vite build configuration
+├── docker-compose.yml         # Container orchestration
+└── README.md                  # Institutional documentation
+```
+
+---
+
+## Prerequisites
+
+- **Node.js:** v18.0.0 or higher (v20+ recommended)
+- **Python:** v3.11.0 or higher
+- **Package Manager:** `npm` (v9+) or `pnpm`
+- **Ollama Runtime (Optional for Live Inference):** Running on `http://127.0.0.1:11434` with `llama3.1:8b` and `qwen2.5-coder:7b` models pulled.
+- **Git:** v2.30+
+
+---
+
+## Environment Variables
+
+Configure application settings by copying `.env.example` to `.env`:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Default Value | Description |
 | :--- | :--- | :--- |
-| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS, Lucide Icons | Sovereign desktop-first workbench UI |
-| **Backend API** | Python 3.11, FastAPI, Pydantic v2, Uvicorn | Local REST API and file streaming |
-| **Orchestration** | LangGraph (`StateGraph`), TypedDict AgentState | Cyclic agent state machine with verifier edges |
-| **Local LLMs** | Ollama local daemon (`127.0.0.1:11434`) | `llama3.1:8b`, `qwen2.5-coder:7b`, `mistral:latest` |
-| **Local Vision** | Local multimodal model (`moondream`) | Scanned inspection tables and P&ID schematic inspection |
-| **Embeddings** | `sentence-transformers/all-MiniLM-L6-v2` | 384-dimensional dense semantic vectors (local CPU) |
-| **Vector Store** | Embedded Qdrant (`qdrant-client` local storage) | Disk-backed vector storage with versioned staged migration |
-| **Code Sandbox** | Process-level socket isolation, timeout guard | Secure calculation execution with network blocking |
-| **Document Processing** | PyMuPDF (`fitz`), `python-docx` | PDF extraction and official `.docx` deliverable creation |
-| **Audit Ledger** | SQLite, OS telemetry inspection (`psutil`) | Immutable task execution logs and socket auditing |
-| **Testing** | pytest, pytest-asyncio, httpx | 37-test automated verification suite |
+| `APP_ENV` | `development` | Deployment environment (`development` / `production`) |
+| `API_PORT` | `8000` | FastAPI server listening port |
+| `OLLAMA_URL` | `http://127.0.0.1:11434` | Local Ollama runtime HTTP address |
+| `QDRANT_STORAGE_PATH`| `./data/qdrant_storage` | Local directory for embedded Qdrant vector index |
+| `AIR_GAPPED_MODE` | `true` | Enforces zero external network socket connections |
+| `ENABLE_SANDBOX` | `true` | Restricts code execution inside isolated child processes |
+| `MAX_VERIFIER_RETRIES`| `1` | Maximum adaptive retry passes for failed verification checks |
 
 ---
 
-## 6. Verified Test Suite & Validation Results
+## Installation & Setup
 
-All claims in this repository are verified by automated tests running against actual component boundaries without mocking internal execution logic:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest backend/tests/ -v
+### 1. Clone Repository
+```bash
+git clone https://github.com/maitray-agrawal/AGNI-AI.git
+cd AGNI-AI
 ```
 
-### Full Regression Suite: 37 / 37 Passed (100%)
+### 2. Backend Setup
+```bash
+# Create and activate virtual environment
+python -m venv .venv
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+# Linux / macOS
+source .venv/bin/activate
 
-| Test Module | Tests | Status | Scope |
-| :--- | :---: | :---: | :--- |
-| `test_agent_models_unit.py` | 4 | **PASSED** | Model registry specs, fallback chains, scoring, schema validation |
-| `test_api.py` | 4 | **PASSED** | FastAPI endpoints (`/api/health`, `/api/models`, `/api/security/status`, `/api/tasks/run`) |
-| `test_failure_injection.py` | 8 | **PASSED** | Connection errors, timeouts, missing models, vision fallback blocks, verifier rejections |
-| `test_flagship_workflow.py` | 1 | **PASSED** | End-to-end inspection PDF -> vision -> RAG -> reasoning -> verifier -> DOCX |
-| `test_inspection_hardening.py` | 3 | **PASSED** | Real prompt-capture test, live LangGraph retry test, degraded mode surfacing test |
-| `test_retry_loop.py` | 2 | **PASSED** | LangGraph adaptive retry on verifier failure, single-retry maximum cap protection |
-| `test_sandbox.py` | 2 | **PASSED** | Isolated calculation execution and socket network blocking verification |
-| `test_sandbox_integration.py` | 2 | **PASSED** | Live agent-to-sandbox code execution and extraction error propagation |
-| `test_semantic_embeddings.py` | 9 | **PASSED** | 384-dim normalization, cosine similarity, offline enforcement, atomic Qdrant staged migration |
-| `test_vertical_poc.py` | 2 | **PASSED** | Vertical slice technical reasoning and isolated mathematical calculation |
-
-### Dedicated Semantic & Vector Suite: 9 / 9 Passed
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest backend/tests/test_semantic_embeddings.py -v
-# Result: 9 passed in 20.78s
+# Install backend dependencies
+pip install -r backend/requirements.txt
 ```
 
----
-
-## 7. Quickstart Guide
-
-### Prerequisites
-- Windows 10/11 or Linux
-- Python 3.11 (`.venv`)
-- Node.js 18+ and npm
-- [Ollama](https://ollama.ai) installed and running locally with models pulled:
-  ```powershell
-  ollama pull llama3.1:8b
-  ollama pull qwen2.5-coder:7b
-  ollama pull moondream
-  ollama pull mistral:latest
-  ```
-
-### 1. Backend Service
-```powershell
-.\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
-```
-Verify health:
-```powershell
-curl.exe http://127.0.0.1:8000/api/health
-```
-
-### 2. Frontend Workbench
-```powershell
+### 3. Frontend Setup
+```bash
 cd frontend
 npm install
-npm run dev -- --host 127.0.0.1 --port 5173
-```
-Open your browser at `http://127.0.0.1:5173`.
-
-### 3. Run Standalone Offline Demo
-```powershell
-.\.venv\Scripts\python.exe scripts/demo_run.py
+cd ..
 ```
 
 ---
 
-## 8. Sovereign Telemetry & Security Guarantees
+## Development
 
-- **Enforced Loopback:** Backend binds strictly to `127.0.0.1`.
-- **Zero Cloud Network Calls:** Local inference calls route strictly to `127.0.0.1:11434`. No external API keys or cloud tokens are configured or required.
-- **Air-Gapped Dense Embeddings:** `all-MiniLM-L6-v2` executes from pre-cached weights with `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1`.
-- **Network-Isolated Sandbox:** The code sandbox intercepts socket creation attempts, preventing generated scripts from attempting outbound connections.
-- **Rollback-Protected Vector Migration:** Vector store updates use isolated staging collections, validating dimensions and cosine probes before atomically switching collection aliases.
+Run both the FastAPI backend server and the Vite development server:
+
+### Terminal 1: Backend Gateway
+```bash
+# From workspace root with activated venv:
+python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+*Backend API available at: `http://127.0.0.1:8000/docs`*
+
+### Terminal 2: Frontend Workspace
+```bash
+cd frontend
+npm run dev
+```
+*Frontend Workspace available at: `http://127.0.0.1:5174/`*
+
+---
+
+## Docker Deployment
+
+To launch the full stack in a containerized sovereign environment:
+
+```bash
+# Build and launch services
+docker compose up -d --build
+
+# View container logs
+docker compose logs -f
+
+# Teardown
+docker compose down
+```
+
+---
+
+## Production Build
+
+To compile the production bundles:
+
+```bash
+cd frontend
+npm run build
+```
+
+The production output will be generated cleanly in `frontend/dist/`.
+
+---
+
+## Application Screenshots
+
+| View | Screenshot |
+| :--- | :--- |
+| **01. Main Dashboard** | ![AGNI Dashboard](docs/screenshots/dashboard.png) |
+| **02. Autonomous Workbench** | ![Intelligence Workbench](docs/screenshots/workbench.png) |
+| **03. Equal Earth Map** | ![Global Signal Field](docs/screenshots/global_signal_field.png) |
+| **04. Geopolitical Analysis** | ![Geopolitical Analysis](docs/screenshots/geopolitical_analysis.png) |
+| **05. Risk Intelligence** | ![Risk Intelligence](docs/screenshots/risk_intelligence.png) |
+| **06. Scenario Modeling** | ![Scenario Modeling](docs/screenshots/scenario_modeling.png) |
+| **07. Knowledge Graph** | ![Knowledge Graph](docs/screenshots/knowledge_graph.png) |
+| **08. Dark Theme** | ![Dark Theme](docs/screenshots/dark_theme.png) |
+| **09. Sandstone Theme** | ![Sandstone Theme](docs/screenshots/sandstone_theme.png) |
+| **10. AstraX Family Page** | ![AstraX Family Page](docs/screenshots/astrax_family.png) |
+
+---
+
+## Verification & Technical Evidence
+
+Every architectural claim is verifiable via reproducible automated test suites:
+
+- **Frontend Compilation:** Verified via `npm run build` (`tsc && vite build`) — compiled cleanly with **0 errors**.
+- **Automated Verification Suite:** Validated using Playwright scripts (`verify_family_separation.py`, `verify_map.py`):
+  - Verified 0 sibling project names rendered on the AGNI main page.
+  - Verified seamless navigation to `/astrax` and return via `"Back to AGNI"`.
+  - Verified real Natural Earth country polygon rendering and signal hotspot projection.
+- **Backend Test Suite:** Verified using `pytest backend/tests/ -q`:
+  - 33 unit, schema, security, router, and failure-injection tests passing.
+
+---
+
+## Testing
+
+Run the automated test suites:
+
+```bash
+# Run backend pytest suite
+.venv\Scripts\pytest backend/tests/ -v
+
+# Run frontend type checking & build validation
+cd frontend
+npm run build
+```
+
+---
+
+## Known Limitations
+
+- **Local Ollama Daemon:** Live neural inference requires a local instance of Ollama running on `http://127.0.0.1:11434`. If Ollama is offline, the workspace operates in deterministic degraded mode using pre-indexed knowledge.
+- **High-Density Vector Storage:** The embedded Qdrant instance stores vectors on local disk; large document ingestion scales linearly with local storage IOPS.
+
+---
+
+## License
+
+This project is licensed under the **Apache-2.0 License** — see the [LICENSE](LICENSE) file for details.

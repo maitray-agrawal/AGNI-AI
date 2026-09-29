@@ -1,14 +1,42 @@
 import React, { useState } from 'react';
-import { Play, Upload, FileText, CheckCircle2, XCircle, Sparkles, RefreshCw, Clock, AlertTriangle, ShieldCheck } from 'lucide-react';
+import {
+  Play, Upload, FileText, CheckCircle2, XCircle,
+  RefreshCw, Clock, AlertTriangle, ShieldCheck, Zap,
+  BookOpen, ChevronRight
+} from 'lucide-react';
 import { TaskRunResponse } from '../types';
 import { submitTask, uploadDocument } from '../api/client';
+import { AgniLogo } from '../brand/AgniLogo';
+import { AstraSeal } from '../brand/AstraSeal';
+import { AgniLoadingMark } from '../brand/AgniLoadingMark';
 
 interface InspectionWorkbenchProps {
   onTaskCompleted: (res: TaskRunResponse) => void;
-  isLoading: boolean;
-  setIsLoading: (v: boolean) => void;
-  latestResponse: TaskRunResponse | null;
+  isLoading:       boolean;
+  setIsLoading:    (v: boolean) => void;
+  latestResponse:  TaskRunResponse | null;
 }
+
+const PRESETS = [
+  {
+    title:  'Flagship: Inspection Approval Note',
+    prompt: 'Analyze this inspection report, identify critical findings, consult relevant local procedures, determine the recommended action, verify the result and generate an approval note.',
+    file:   'data/raw/inspection_reports/MRPL_Inspection_Report_P204.pdf',
+    tag:    'Inspection',
+  },
+  {
+    title:  'Calculation: Wall Thickness Reduction',
+    prompt: 'Calculate the percentage reduction from 8.2 mm to 4.2 mm wall thickness for Heavy Gas Oil piping and compare against 4.0 mm API 570 retirement limit.',
+    file:   '',
+    tag:    'Engineering',
+  },
+  {
+    title:  'P&ID: Unit Flow & Valve Inspection',
+    prompt: 'Inspect the CDU-II pump P-204 A/B P&ID schematic. Identify feed vessel, pumps, critical discharge elbow, and flow control valve FCV-204.',
+    file:   'data/raw/pidqa/pid_cdu_pump_p204.png',
+    tag:    'P&ID',
+  },
+];
 
 export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
   onTaskCompleted,
@@ -16,37 +44,16 @@ export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
   setIsLoading,
   latestResponse,
 }) => {
-  const [prompt, setPrompt] = useState<string>(
-    'Analyze this inspection report, identify critical findings, consult relevant local procedures, determine the recommended action, verify the result and generate an approval note.'
-  );
-  const [selectedFile, setSelectedFile] = useState<string>(
-    'data/raw/inspection_reports/MRPL_Inspection_Report_P204.pdf'
-  );
-  const [uploadStatus, setUploadStatus] = useState<string>('Preloaded: MRPL_Inspection_Report_P204.pdf');
-
-  const presets = [
-    {
-      title: 'Flagship: Inspection Approval Note',
-      prompt: 'Analyze this inspection report, identify critical findings, consult relevant local procedures, determine the recommended action, verify the result and generate an approval note.',
-      file: 'data/raw/inspection_reports/MRPL_Inspection_Report_P204.pdf',
-    },
-    {
-      title: 'Calculation: Wall Thickness Reduction',
-      prompt: 'Calculate the percentage reduction from 8.2 mm to 4.2 mm wall thickness for Heavy Gas Oil piping and compare against 4.0 mm API 570 retirement limit.',
-      file: '',
-    },
-    {
-      title: 'P&ID: Unit Flow & Valve Inspection',
-      prompt: 'Inspect the CDU-II pump P-204 A/B P&ID schematic. Identify feed vessel, pumps, critical discharge elbow, and flow control valve FCV-204.',
-      file: 'data/raw/pidqa/pid_cdu_pump_p204.png',
-    },
-  ];
+  const [prompt, setPrompt] = useState<string>(PRESETS[0].prompt);
+  const [selectedFile, setSelectedFile]     = useState<string>(PRESETS[0].file);
+  const [uploadStatus, setUploadStatus]     = useState<string>('Preloaded: MRPL_Inspection_Report_P204.pdf');
+  const [activePreset, setActivePreset]     = useState<number>(0);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
     const file = e.target.files[0];
     try {
-      setUploadStatus(`Uploading ${file.name}...`);
+      setUploadStatus(`Uploading ${file.name}…`);
       const res = await uploadDocument(file);
       setSelectedFile(res.saved_path);
       setUploadStatus(`Uploaded: ${res.filename}`);
@@ -60,7 +67,7 @@ export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
     setIsLoading(true);
     try {
       const files = selectedFile ? [selectedFile] : [];
-      const res = await submitTask(prompt, files);
+      const res   = await submitTask(prompt, files);
       onTaskCompleted(res);
     } catch (err: any) {
       alert(`Execution failed: ${err.message}`);
@@ -69,64 +76,141 @@ export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
     }
   };
 
+  const selectPreset = (idx: number) => {
+    const p = PRESETS[idx];
+    setActivePreset(idx);
+    setPrompt(p.prompt);
+    setSelectedFile(p.file);
+    setUploadStatus(p.file ? `Selected: ${p.file.split('/').pop()}` : 'No document required');
+  };
+
   return (
-    <div className="rounded-xl border border-slate-800 bg-[#0f172a]/90 overflow-hidden shadow-2xl">
-      <div className="px-6 py-4 border-b border-slate-800/80 bg-slate-900/50 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Sparkles className="w-5 h-5 text-orange-400" />
-          <h2 className="text-base font-bold text-white tracking-wide">AUTONOMOUS WORKBENCH</h2>
+    <div
+      className="astra-card"
+      style={{ padding: 0, overflow: 'hidden' }}
+    >
+      {/* ── Card header ──────────────────────────────────── */}
+      <div
+        className="px-6 py-4 flex items-center justify-between"
+        style={{
+          borderBottom: '1px solid var(--astra-sandstone-dark)',
+          background:   'var(--astra-sandstone)',
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center p-1"
+            style={{ background: 'var(--astra-sandstone-dark)', color: 'var(--astra-ink)' }}
+          >
+            <AgniLogo variant="mark" size={22} theme="primary" />
+          </div>
+          <div>
+            <h2
+              style={{
+                fontFamily:    'var(--font-display)',
+                fontSize:      '1rem',
+                fontWeight:    600,
+                color:         'var(--astra-ink)',
+                lineHeight:    1.2,
+              }}
+            >
+              Autonomous Intelligence Workbench
+            </h2>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.5625rem', color: 'var(--astra-slate)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              Deterministic On-Premise Workflow · Evidence-Grounded
+            </p>
+          </div>
         </div>
-        <span className="text-xs font-mono text-slate-400">Deterministic On-Premise Workflow</span>
+
+        <div className="flex items-center gap-2">
+          {isLoading && (
+            <span
+              style={{
+                fontFamily:  'var(--font-mono)',
+                fontSize:    '0.625rem',
+                color:       'var(--agni-copper)',
+                letterSpacing:'0.08em',
+                textTransform:'uppercase',
+                fontWeight:  600,
+              }}
+              className="flex items-center gap-1.5"
+            >
+              <span className="agni-bindu live" />
+              Processing
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="p-6 space-y-5">
-        {/* Presets Row */}
+        {/* ── Workflow presets ───────────────────────────── */}
         <div>
-          <label className="text-xs font-mono text-slate-400 uppercase tracking-wider mb-2 block">
-            Select Industrial Workflow Preset
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            {presets.map((preset, idx) => (
+          <div className="astra-label mb-3">Select Analytical Workflow Preset</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {PRESETS.map((preset, idx) => (
               <button
                 key={idx}
                 type="button"
-                onClick={() => {
-                  setPrompt(preset.prompt);
-                  setSelectedFile(preset.file);
-                  setUploadStatus(preset.file ? `Selected: ${preset.file.split('/').pop()}` : 'No file required');
-                }}
-                className={`p-3 rounded-lg border text-left transition-all text-xs font-sans ${
-                  prompt === preset.prompt
-                    ? 'border-orange-500/60 bg-orange-500/10 text-white shadow-sm'
-                    : 'border-slate-800 bg-slate-950/40 text-slate-300 hover:bg-slate-900/60'
-                }`}
+                onClick={() => selectPreset(idx)}
+                className={`preset-card ${activePreset === idx ? 'active' : ''}`}
+                aria-pressed={activePreset === idx}
               >
-                <div className="font-semibold">{preset.title}</div>
-                <div className="text-[11px] text-slate-500 mt-1 truncate">{preset.prompt}</div>
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-sans)',
+                      fontSize:   '0.8125rem',
+                      fontWeight: 600,
+                      color:      activePreset === idx ? 'var(--agni-red)' : 'var(--astra-ink)',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {preset.title}
+                  </span>
+                  <span className="intel-tag flex-shrink-0">{preset.tag}</span>
+                </div>
+                <p
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize:   '0.6875rem',
+                    color:      'var(--astra-slate)',
+                    lineHeight: 1.5,
+                    display:    '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient:'vertical',
+                    overflow:   'hidden',
+                  }}
+                >
+                  {preset.prompt}
+                </p>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Input Textarea */}
+        {/* ── Task instruction textarea ──────────────────── */}
         <div>
-          <label className="text-xs font-mono text-slate-400 uppercase tracking-wider mb-1.5 block">
-            Task Instruction / Engineering Query
+          <label
+            htmlFor="intel-query"
+            className="astra-label mb-2 block"
+          >
+            Intelligence Query / Task Instruction
           </label>
           <textarea
-            rows={3}
+            id="intel-query"
+            rows={4}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="w-full rounded-lg border border-slate-800 bg-slate-950/80 px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 font-mono transition leading-relaxed"
-            placeholder="Specify industrial task, document analysis request, or engineering calculation..."
+            className="intel-textarea"
+            placeholder="Specify an intelligence task, document analysis request, or engineering calculation…"
           />
         </div>
 
-        {/* File Selection & Action Bar */}
+        {/* ── File & action bar ─────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-          <div className="flex items-center space-x-3">
-            <label className="cursor-pointer flex items-center space-x-2 px-3.5 py-2 rounded-lg border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-mono transition">
-              <Upload className="w-3.5 h-3.5 text-sky-400" />
+          <div className="flex items-center gap-3">
+            <label className="btn-secondary cursor-pointer">
+              <Upload className="w-3.5 h-3.5" style={{ color: 'var(--agni-copper)' }} />
               <span>Upload Document</span>
               <input
                 type="file"
@@ -135,8 +219,15 @@ export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
                 onChange={handleFileUpload}
               />
             </label>
-            <span className="text-xs text-slate-400 font-mono flex items-center">
-              <FileText className="w-3.5 h-3.5 mr-1.5 text-orange-400 inline" />
+            <span
+              className="flex items-center gap-1.5"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize:   '0.6875rem',
+                color:      'var(--astra-slate)',
+              }}
+            >
+              <FileText className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--agni-copper)' }} />
               {uploadStatus}
             </span>
           </div>
@@ -144,116 +235,211 @@ export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
           <button
             onClick={handleExecute}
             disabled={isLoading}
-            className="flex items-center justify-center space-x-2 px-6 py-2.5 rounded-lg bg-gradient-to-r from-orange-600 via-amber-600 to-orange-500 hover:from-orange-500 hover:to-amber-500 text-white font-bold text-xs tracking-wider uppercase transition shadow-lg shadow-orange-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary"
+            aria-busy={isLoading}
           >
             {isLoading ? (
               <>
                 <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>Executing Agent...</span>
+                <span>Executing Agent…</span>
               </>
             ) : (
               <>
-                <Play className="w-4 h-4 fill-white" />
+                <Play className="w-4 h-4 fill-current" />
                 <span>Execute Autonomous Workflow</span>
               </>
             )}
           </button>
         </div>
 
-        {/* Latest Response & Synthesis Card */}
-        {latestResponse && (
-          <div className="mt-5 rounded-lg border border-slate-800 bg-slate-950/70 p-5 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+        {/* ── Active Loading State (Section 19) ─────────── */}
+        {isLoading && (
+          <div className="my-8 py-6 flex flex-col items-center justify-center rounded-xl bg-astra-sandstone/30 border border-astra-sandstone-dark/50">
+            <AgniLoadingMark
+              size={56}
+              label="SYNTHESIZING INTELLIGENCE & EXECUTING REASONING PIPELINE..."
+            />
+          </div>
+        )}
+
+        {/* ── Response card ─────────────────────────────── */}
+        {latestResponse && !isLoading && (
+          <div
+            className="mt-2 rounded-xl overflow-hidden"
+            style={{
+              border:    '1px solid var(--astra-sandstone-dark)',
+              background:'var(--astra-sandstone)',
+              animation: 'fadeUp 0.3s ease-out',
+            }}
+          >
+            {/* Dossier Institutional Header (Sections 20 & 21) */}
+            <div
+              className="px-6 py-4 flex items-center justify-between border-b border-astra-sandstone-dark bg-astra-ivory"
+            >
+              <AgniLogo
+                variant="full"
+                size={34}
+                theme="light"
+                showAstraAttribution={true}
+              />
+              <AstraSeal
+                size={62}
+                caption="AUTHENTICATED DOSSIER"
+                provenanceId={latestResponse.task_id ? latestResponse.task_id.substring(0, 14) : 'AGNI-COR-01'}
+              />
+            </div>
+
+            {/* Response metadata strip */}
+            <div
+              className="px-5 py-3 flex flex-wrap items-center justify-between gap-3"
+              style={{ borderBottom: '1px solid var(--astra-sandstone-dark)', background: 'var(--astra-ivory)' }}
+            >
               <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center space-x-1.5">
-                  <span className="text-xs text-slate-400 font-mono">Assigned Model:</span>
-                  <span className="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono text-xs font-bold">
-                    {latestResponse.selected_model || 'Local Model'}
-                  </span>
+                {/* Model badge */}
+                <div
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+                  style={{
+                    background:  'rgba(46,58,94,0.07)',
+                    border:      '1px solid rgba(46,58,94,0.15)',
+                    fontFamily:  'var(--font-mono)',
+                    fontSize:    '0.625rem',
+                    color:       'var(--astra-indigo)',
+                    fontWeight:  700,
+                  }}
+                >
+                  <Zap className="w-3 h-3" />
+                  {latestResponse.selected_model || 'Local Model'}
                 </div>
 
                 {latestResponse.task_type && (
-                  <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[11px]">
-                    Role: {latestResponse.task_type}
+                  <span className="intel-tag">
+                    {latestResponse.task_type}
                   </span>
                 )}
 
                 {latestResponse.total_duration_ms !== undefined && latestResponse.total_duration_ms > 0 && (
-                  <span className="flex items-center space-x-1 px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300 font-mono text-[11px]">
-                    <Clock className="w-3 h-3 text-slate-400" />
-                    <span>{(latestResponse.total_duration_ms / 1000).toFixed(1)}s</span>
+                  <span
+                    className="flex items-center gap-1"
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize:   '0.625rem',
+                      color:      'var(--astra-slate)',
+                    }}
+                  >
+                    <Clock className="w-3 h-3" />
+                    {(latestResponse.total_duration_ms / 1000).toFixed(1)}s
                   </span>
                 )}
               </div>
 
-              {latestResponse.verification && (
-                <span
-                  className={`flex items-center space-x-1.5 text-xs font-mono font-semibold px-2.5 py-0.5 rounded ${
-                    latestResponse.verification.status === 'passed'
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                  }`}
-                >
-                  {latestResponse.verification.status === 'passed' ? (
-                    <>
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>8-POINT VERIFICATION PASSED</span>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="w-3.5 h-3.5" />
-                      <span>VERIFICATION FAILED</span>
-                    </>
-                  )}
-                </span>
-              )}
+              {/* Verification status */}
+              <div className="flex items-center gap-2">
+                {latestResponse.verification && (
+                  <span
+                    className={`confidence-badge ${latestResponse.verification.status === 'passed' ? 'high' : 'low'}`}
+                  >
+                    {latestResponse.verification.status === 'passed' ? (
+                      <><CheckCircle2 className="w-3 h-3" /> 8-Point Verified</>
+                    ) : (
+                      <><XCircle className="w-3 h-3" /> Verification Failed</>
+                    )}
+                  </span>
+                )}
 
-              {latestResponse.summary?.includes('DEGRADED MODE') ? (
-                <span className="flex items-center space-x-1.5 text-xs font-mono font-semibold px-2.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                  <span>DEGRADED MODE (REFERENCE FALLBACK)</span>
-                </span>
-              ) : latestResponse.task_type === 'inspection_workflow' ? (
-                <span className="flex items-center space-x-1.5 text-xs font-mono font-semibold px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>LIVE EXTRACTION</span>
-                </span>
-              ) : null}
+                {latestResponse.summary?.includes('DEGRADED MODE') ? (
+                  <span className="confidence-badge medium">
+                    <AlertTriangle className="w-3 h-3" /> Degraded Mode
+                  </span>
+                ) : latestResponse.task_type === 'inspection_workflow' ? (
+                  <span className="confidence-badge high">
+                    <ShieldCheck className="w-3 h-3" /> Live Extraction
+                  </span>
+                ) : null}
+              </div>
             </div>
 
-            {/* Routing Rationale Callout */}
+            {/* Routing rationale */}
             {latestResponse.routing_reason && (
-              <div className="text-xs font-mono text-slate-300 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800/80 flex items-start space-x-2">
-                <span className="text-sky-400 font-semibold uppercase tracking-wider text-[10px] bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-800/40 shrink-0">
-                  Routing Rationale
+              <div
+                className="px-5 py-3 flex items-start gap-3"
+                style={{ borderBottom: '1px solid var(--astra-sandstone-dark)', background: 'var(--astra-ivory)' }}
+              >
+                <span
+                  style={{
+                    fontFamily:    'var(--font-mono)',
+                    fontSize:      '0.5625rem',
+                    fontWeight:    700,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    color:         'var(--agni-copper)',
+                    background:    'rgba(182,106,60,0.08)',
+                    border:        '1px solid rgba(182,106,60,0.2)',
+                    padding:       '2px 8px',
+                    borderRadius:  '4px',
+                    flexShrink:    0,
+                    alignSelf:     'flex-start',
+                    marginTop:     '1px',
+                  }}
+                >
+                  Routing
                 </span>
-                <span className="text-slate-300 italic">{latestResponse.routing_reason}</span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize:   '0.8125rem',
+                    color:      'var(--astra-slate)',
+                    fontStyle:  'italic',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {latestResponse.routing_reason}
+                </span>
               </div>
             )}
 
-            {/* Structured Synthesis Content */}
-            <div className="text-sm text-slate-200 leading-relaxed font-sans whitespace-pre-wrap">
+            {/* Summary content */}
+            <div
+              className="px-5 py-4"
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize:   '0.9rem',
+                color:      'var(--astra-ink)',
+                lineHeight: 1.7,
+                whiteSpace: 'pre-wrap',
+              }}
+            >
               {latestResponse.summary}
             </div>
 
-            {/* Verification checklist pills */}
+            {/* Verification guardrails */}
             {latestResponse.verification?.checks && (
-              <div className="pt-2 border-t border-slate-800/80">
-                <div className="text-[11px] font-mono text-slate-400 mb-2">Automated Verification Guardrails:</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+              <div
+                className="px-5 py-4"
+                style={{ borderTop: '1px solid var(--astra-sandstone-dark)' }}
+              >
+                <div className="astra-label mb-3">Automated Verification Guardrails</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {latestResponse.verification.checks.map((c, i) => (
                     <div
                       key={i}
-                      className="flex items-center space-x-2 p-2 rounded bg-slate-900/60 border border-slate-800/60"
+                      className="flex items-start gap-2 px-3 py-2.5 rounded-lg"
+                      style={{
+                        background: c.passed ? 'rgba(45,106,79,0.06)' : 'rgba(192,57,43,0.05)',
+                        border:     `1px solid ${c.passed ? 'rgba(45,106,79,0.15)' : 'rgba(192,57,43,0.15)'}`,
+                      }}
                     >
                       {c.passed ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: 'var(--status-positive)' }} />
                       ) : (
-                        <XCircle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                        <XCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: 'var(--status-critical)' }} />
                       )}
-                      <div className="truncate">
-                        <span className="text-slate-300 font-semibold">{c.name}: </span>
-                        <span className="text-slate-500">{c.details}</span>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', color: 'var(--astra-ink)', lineHeight: 1.5 }}>
+                        <span style={{ fontWeight: 700, color: c.passed ? 'var(--status-positive)' : 'var(--status-critical)' }}>
+                          {c.name}
+                        </span>
+                        {c.details && (
+                          <span style={{ color: 'var(--astra-slate)', marginLeft: '4px' }}>— {c.details}</span>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -261,9 +447,19 @@ export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
               </div>
             )}
 
-            {/* Synthetic demo corpus disclaimer */}
-            <div className="text-[10px] text-slate-500 font-mono italic border-t border-slate-800/60 pt-2 text-right">
-              Demo corpus — synthetic/public industrial demonstration documents; no proprietary MRPL information is included.
+            {/* Disclaimer */}
+            <div
+              className="px-5 py-2.5"
+              style={{
+                borderTop:  '1px solid var(--astra-sandstone-dark)',
+                fontFamily: 'var(--font-mono)',
+                fontSize:   '0.5625rem',
+                color:      'var(--astra-slate)',
+                textAlign:  'right',
+                fontStyle:  'italic',
+              }}
+            >
+              Demo corpus — synthetic/public industrial demonstration documents; no proprietary information included.
             </div>
           </div>
         )}

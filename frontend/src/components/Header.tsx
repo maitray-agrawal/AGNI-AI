@@ -1,59 +1,107 @@
 import React from 'react';
-import { Shield, Cpu, Database, Flame } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Bell, ChevronDown, Menu } from 'lucide-react';
+import { AgniLogo } from '../brand/AgniLogo';
+import { AstraThemeSwitcher } from '../brand/AstraThemeSwitcher';
+import { AstraMark } from './AstraMark';
+import { SystemStatus, IntelligenceCommandBar } from './AstraShared';
 
 interface HeaderProps {
-  airGapped: boolean;
+  airGapped:    boolean;
   activeModel?: string;
+  onMenuToggle?: () => void;
+  sidebarOpen?:  boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ airGapped, activeModel }) => {
+export const Header: React.FC<HeaderProps> = ({
+  airGapped,
+  activeModel,
+  onMenuToggle,
+  sidebarOpen,
+}) => {
+  const navigate = useNavigate();
+
   return (
-    <header className="border-b border-slate-800 bg-[#0b1120]/90 backdrop-blur px-6 py-4 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* Brand & Identity */}
-        <div className="flex items-center space-x-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
-            <Flame className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="text-xl font-bold tracking-tight text-white font-mono">AGNI-AI</h1>
-              <span className="px-2 py-0.5 text-xs font-semibold rounded-md bg-orange-500/10 text-orange-400 border border-orange-500/20">
-                ASTRAX SOVEREIGN
-              </span>
-            </div>
-            <p className="text-xs text-slate-400">
-              Sovereign Agentic Intelligence for Evidence-Grounded Engineering Workflows
-            </p>
-          </div>
-        </div>
+    <header className="astra-topbar flex items-center gap-4 px-4 py-2.5" role="banner">
+      {/* ── Menu toggle (mobile) ─────────────────────────── */}
+      <button
+        onClick={onMenuToggle}
+        className="md:hidden btn-secondary !p-2 flex-shrink-0"
+        aria-label="Toggle navigation"
+        aria-expanded={sidebarOpen}
+      >
+        <Menu className="w-4 h-4" />
+      </button>
 
-        {/* Status Indicators */}
-        <div className="flex items-center space-x-4">
-          {/* Active Model */}
-          <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800 text-xs">
-            <Cpu className="w-3.5 h-3.5 text-sky-400" />
-            <span className="text-slate-400">Runtime:</span>
-            <span className="font-mono text-slate-200">{activeModel || 'Ollama (Local)'}</span>
-          </div>
+      {/* ── Canonical AGNI Header Lockup (Desktop/Tablet) ── */}
+      <div
+        className="flex-shrink-0 flex items-center pr-2 border-r border-astra-sandstone-dark/40 cursor-pointer"
+        onClick={() => navigate('/')}
+        title="Return to AGNI Intelligence Dashboard"
+      >
+        <AgniLogo
+          variant="full"
+          size={30}
+          showAstraAttribution={true}
+          theme="light"
+          className="hidden sm:flex"
+        />
+        <AgniLogo
+          variant="mark"
+          size={24}
+          theme="light"
+          className="sm:hidden"
+        />
+      </div>
 
-          {/* Local Vector DB */}
-          <div className="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800 text-xs">
-            <Database className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="text-slate-400">RAG:</span>
-            <span className="font-mono text-slate-200">Qdrant (Disk)</span>
-          </div>
+      {/* ── Intelligence command bar ─────────────────────── */}
+      <IntelligenceCommandBar className="flex-1 max-w-xl" />
 
-          {/* Sovereignty Badge */}
-          <div className="flex items-center space-x-2 px-3.5 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-medium shadow-sm">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <Shield className="w-3.5 h-3.5" />
-            <span className="tracking-wide font-mono font-semibold">SOVEREIGN AIR-GAP</span>
+      {/* ── Right side controls ──────────────────────────── */}
+      <div className="flex items-center gap-3 ml-auto flex-shrink-0">
+
+        {/* Compact system status strip */}
+        <SystemStatus
+          airGapped={airGapped}
+          model={activeModel}
+          ragOnline={true}
+        />
+
+        {/* Live AstraX Theme & Project Switcher (Section 12 & 28) */}
+        <AstraThemeSwitcher />
+
+        {/* Notifications */}
+        <button
+          className="relative p-2 rounded-lg transition-colors flex-shrink-0"
+          style={{ color: 'var(--astra-slate)' }}
+          aria-label="View notifications — 2 unread"
+          onMouseOver={e => (e.currentTarget.style.background = 'var(--astra-sandstone)')}
+          onMouseOut={e  => (e.currentTarget.style.background = 'transparent')}
+        >
+          <Bell className="w-4 h-4" />
+          <span
+            className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
+            style={{ background: 'var(--agni-red)' }}
+            aria-hidden="true"
+          />
+        </button>
+
+        {/* User profile */}
+        <button
+          className="flex items-center gap-1.5 px-1.5 py-1 rounded-lg transition-colors flex-shrink-0"
+          style={{ color: 'var(--astra-slate)' }}
+          aria-label="User profile menu"
+          onMouseOver={e => (e.currentTarget.style.background = 'var(--astra-sandstone)')}
+          onMouseOut={e  => (e.currentTarget.style.background = 'transparent')}
+        >
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center"
+            style={{ background: 'var(--agni-red)', color: 'var(--astra-ivory)' }}
+          >
+            <AstraMark size={14} />
           </div>
-        </div>
+          <ChevronDown className="w-3 h-3 hidden sm:block" />
+        </button>
       </div>
     </header>
   );

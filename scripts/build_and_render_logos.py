@@ -1,0 +1,104 @@
+import os
+
+agni_svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 110" width="480" height="440">
+  <defs>
+    <!-- Facet color definitions -->
+    <linearGradient id="agniCopperLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D97706" />
+      <stop offset="100%" stop-color="#B87333" />
+    </linearGradient>
+    <linearGradient id="agniCopperDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#B87333" />
+      <stop offset="100%" stop-color="#8B4513" />
+    </linearGradient>
+    <linearGradient id="agniVermilionLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444" />
+      <stop offset="100%" stop-color="#DC2626" />
+    </linearGradient>
+    <linearGradient id="agniVermilionDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DC2626" />
+      <stop offset="100%" stop-color="#9E3B24" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background for testing -->
+  <rect width="120" height="110" fill="#FDF7EC" />
+
+  <g id="agni-mark" transform="translate(0, 4)">
+    <!-- Thin Geometric Guide & Wireframe Lines (Mathematical Grammar) -->
+    <!-- Diagonal ray from hollow diamond to left satellite diamond -->
+    <line x1="60" y1="19" x2="14" y2="76" stroke="#DC2626" stroke-width="0.8" opacity="0.85" />
+    <!-- Diagonal ray from hollow diamond to right satellite diamond -->
+    <line x1="60" y1="19" x2="106" y2="76" stroke="#DC2626" stroke-width="0.8" opacity="0.85" />
+    
+    <!-- Ray from hollow diamond passing inner wing outer tip to lower wing -->
+    <line x1="60" y1="19" x2="28" y2="85" stroke="#B87333" stroke-width="0.6" opacity="0.65" />
+    <line x1="60" y1="19" x2="92" y2="85" stroke="#B87333" stroke-width="0.6" opacity="0.65" />
+    
+    <!-- Connecting line from satellite diamond to wing tip -->
+    <line x1="14" y1="76" x2="18" y2="92" stroke="#DC2626" stroke-width="0.7" opacity="0.75" />
+    <line x1="106" y1="76" x2="102" y2="92" stroke="#DC2626" stroke-width="0.7" opacity="0.75" />
+
+    <!-- Satellite Diamonds (Outer telemetry nodes) -->
+    <!-- Left Satellite Diamond: center at (14, 76), radius ~3.2 -->
+    <polygon points="14,72.5 17.5,76 14,79.5 10.5,76" fill="#DC2626" />
+    <!-- Right Satellite Diamond: center at (106, 76), radius ~3.2 -->
+    <polygon points="106,72.5 109.5,76 106,79.5 102.5,76" fill="#DC2626" />
+
+    <!-- Vertical Axis Apex Structures -->
+    <!-- Top Apex Diamond: center at (60, 8), size ~3.5 -->
+    <polygon points="60,4.5 63.5,8 60,11.5 56.5,8" fill="#DC2626" />
+    
+    <!-- Vertical connector -->
+    <line x1="60" y1="11.5" x2="60" y2="15" stroke="#DC2626" stroke-width="1.1" />
+
+    <!-- Hollow Diamond Node: center at (60, 19), size ~5.5 -->
+    <polygon points="60,14 65,19 60,24 55,19" fill="#FDF7EC" stroke="#DC2626" stroke-width="1.2" />
+    <polygon points="60,16 63,19 60,22 57,19" fill="#DC2626" />
+
+    <!-- Central Vertical Tapered Needle / Spire -->
+    <!-- From below hollow diamond (60, 24.5) to above central bindu (60, 68) -->
+    <polygon points="58.8,26 61.2,26 60.6,67 59.4,67" fill="#B87333" />
+
+    <!-- Left Inner Wing Sail (Faceted) -->
+    <!-- Inner edge x=57, top=(57, 34), outer vertex=(40, 53), bottom=(57, 72) -->
+    <!-- Upper facet (lighter copper/vermilion) -->
+    <polygon points="57,34 40,53 57,52" fill="#D97706" />
+    <!-- Lower facet (rich vermilion/rust) -->
+    <polygon points="40,53 57,52 57,72" fill="#9E3B24" />
+
+    <!-- Right Inner Wing Sail (Faceted, Symmetrical) -->
+    <!-- Inner edge x=63, top=(63, 34), outer vertex=(80, 53), bottom=(63, 72) -->
+    <!-- Upper facet (vermilion) -->
+    <polygon points="63,34 80,53 63,52" fill="#DC2626" />
+    <!-- Lower facet (copper) -->
+    <polygon points="80,53 63,52 63,72" fill="#B87333" />
+
+    <!-- Central Bindu (Diamond at intersection) -->
+    <!-- Center at (60, 77), top=(60, 68), left=(52, 77), right=(68, 77), bottom=(60, 90) -->
+    <!-- Left half facet (rust) -->
+    <polygon points="60,68 52,77 60,90" fill="#9E3B24" />
+    <!-- Right half facet (copper) -->
+    <polygon points="60,68 68,77 60,90" fill="#B87333" />
+
+    <!-- Left Lower Swept Outrigger Wing (Faceted) -->
+    <!-- Sweeps from near center out to sharp tip at (18, 92) -->
+    <!-- Upper facet -->
+    <polygon points="54,75 18,92 53,82" fill="#B87333" />
+    <!-- Lower facet -->
+    <polygon points="53,82 18,92 57,85" fill="#9E3B24" />
+
+    <!-- Right Lower Swept Outrigger Wing (Faceted) -->
+    <!-- Sweeps from near center out to sharp tip at (102, 92) -->
+    <!-- Upper facet -->
+    <polygon points="66,75 102,92 67,82" fill="#DC2626" />
+    <!-- Lower facet -->
+    <polygon points="67,82 102,92 63,85" fill="#B87333" />
+  </g>
+</svg>
+'''
+
+with open('d:/AGNI-AI/docs/brand_reference/test_agni.svg', 'w') as f:
+    f.write(agni_svg)
+
+print("SVG generated successfully")

@@ -2,31 +2,768 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════════════════════════
+   ASTRAX / AGNI — Global Design System
+   Research · Geopolitical Intelligence · AstraX
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── CSS Custom Properties ────────────────────────────────────── */
 :root {
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  /* AstraX Core (Official Canonical Palette) */
+  --astra-ivory:          #FDF7EC;
+  --astra-ivory-dim:      #F5EFE3;
+  --astra-sandstone:      #E4DCC8;
+  --astra-sandstone-dark: #D4CABA;
+  --astra-ink:            #221B14;
+  --astra-ink-light:      #332B22;
+  --astra-slate:          #66707A;
+  --astra-slate-light:    #8A949E;
+  --astra-indigo:         #1E3A8A;
+  --astra-saffron:        #F59E0B;
+  --astra-forest:         #166534;
+  --astra-ochre:          #CA8A04;
+  --astra-teal:           #0D9488;
+
+  /* AGNI Product Colors */
+  --agni-copper:          #B87333;
+  --agni-copper-light:    #D48946;
+  --agni-copper-dark:     #8A5222;
+  --agni-vermilion:       #DC2626;
+  --agni-rust:            #9E3B24;
+  --agni-red:             #DC2626;
+  --agni-red-deep:        #9E3B24;
+  --agni-red-muted:       #B91C1C;
+  --agni-terracotta:      #9E3B24;
+  --agni-clay:            #8B6355;
+
+  /* Semantic UI Tokens (Default: Light / Primary) */
+  --color-background:       var(--astra-ivory);
+  --color-surface:          var(--astra-sandstone);
+  --color-surface-elevated: #FFFFFF;
+  --color-text:             var(--astra-ink);
+  --color-text-muted:       var(--astra-slate);
+  --color-border:           var(--astra-sandstone-dark);
+  --color-primary:          var(--agni-copper);
+  --color-secondary:        var(--agni-vermilion);
+  --color-danger:           var(--status-critical);
+  --color-success:          var(--status-positive);
+  --color-warning:          var(--status-warning);
+  --color-accent:           var(--agni-copper);
+
+  /* Project Overrides (Default: AGNI) */
+  --project-primary:        var(--agni-copper);
+  --project-secondary:      var(--agni-vermilion);
+  --project-border:         rgba(184, 115, 51, 0.25);
+  --project-surface-accent: rgba(184, 115, 51, 0.08);
+
+  /* Status */
+  --status-positive:      #2D6A4F;
+  --status-warning:       #C2842A;
+  --status-critical:      #C0392B;
+
+  /* Typography scale */
+  --font-display: 'Fraunces', 'Source Serif 4', Georgia, serif;
+  --font-serif:   'Fraunces', 'Source Serif 4', Georgia, serif;
+  --font-sans:    'Inter', 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Spacing tokens */
+  --space-xs:   4px;
+  --space-sm:   8px;
+  --space-md:   16px;
+  --space-lg:   24px;
+  --space-xl:   32px;
+  --space-2xl:  48px;
+  --space-3xl:  64px;
+
+  /* Border radius */
+  --radius-xs:  4px;
+  --radius-sm:  6px;
+  --radius:     8px;
+  --radius-md:  10px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+  --radius-2xl: 20px;
+
+  /* Shadows */
+  --shadow-sm:  0 1px 3px rgba(24,32,43,0.08), 0 1px 2px -1px rgba(24,32,43,0.06);
+  --shadow-md:  0 4px 12px -1px rgba(24,32,43,0.10), 0 2px 6px -2px rgba(24,32,43,0.08);
+  --shadow-lg:  0 10px 28px -4px rgba(24,32,43,0.12), 0 4px 12px -4px rgba(24,32,43,0.08);
+  --shadow-xl:  0 20px 48px -8px rgba(24,32,43,0.16);
+  --shadow-card: 0 2px 8px rgba(24,32,43,0.07), 0 0 0 1px rgba(232,216,194,0.6);
+
+  /* Transitions */
+  --ease-astra: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast:   150ms;
+  --duration-base:   200ms;
+  --duration-slow:   300ms;
 }
+
+/* ── Theme Variants (Section 12) ─────────────────────────────── */
+[data-theme="dark"] {
+  --color-background:       #111827;
+  --color-surface:          #1F2937;
+  --color-surface-elevated: #374151;
+  --color-text:             #F9FAFB;
+  --color-text-muted:       #9CA3AF;
+  --color-border:           #374151;
+  --astra-ivory:            #111827;
+  --astra-sandstone:        #1F2937;
+  --astra-sandstone-dark:   #374151;
+  --astra-ink:              #F9FAFB;
+  --astra-slate:            #9CA3AF;
+}
+
+[data-theme="sandstone"] {
+  --color-background:       #EADCC8;
+  --color-surface:          #DFD1BC;
+  --color-surface-elevated: #F4E8D6;
+  --color-text:             #221B14;
+  --color-text-muted:       #5C5449;
+  --color-border:           #CBBDA8;
+  --astra-ivory:            #EADCC8;
+  --astra-sandstone:        #DFD1BC;
+  --astra-sandstone-dark:   #CBBDA8;
+}
+
+[data-theme="monochrome"] {
+  --color-background:       #FFFFFF;
+  --color-surface:          #F3F4F6;
+  --color-surface-elevated: #FFFFFF;
+  --color-text:             #000000;
+  --color-text-muted:       #4B5563;
+  --color-border:           #E5E7EB;
+  --color-primary:          #000000;
+  --color-secondary:        #374151;
+  --color-accent:           #000000;
+}
+
+/* ── Project Identity Overrides (Section 5 & 28) ─────────────── */
+[data-project="kubersetu"] {
+  --project-primary:        var(--astra-indigo);
+  --project-secondary:      var(--agni-copper);
+  --project-border:         rgba(30, 58, 138, 0.25);
+  --project-surface-accent: rgba(30, 58, 138, 0.08);
+}
+
+[data-project="vajra"] {
+  --project-primary:        var(--astra-vermilion);
+  --project-secondary:      var(--agni-copper);
+  --project-border:         rgba(220, 38, 38, 0.25);
+  --project-surface-accent: rgba(220, 38, 38, 0.08);
+}
+
+[data-project="niyukti"] {
+  --project-primary:        var(--astra-indigo);
+  --project-secondary:      var(--astra-saffron);
+  --project-border:         rgba(30, 58, 138, 0.25);
+  --project-surface-accent: rgba(245, 158, 11, 0.08);
+}
+
+[data-project="margadarshi"] {
+  --project-primary:        var(--astra-teal);
+  --project-secondary:      var(--astra-saffron);
+  --project-border:         rgba(13, 148, 136, 0.25);
+  --project-surface-accent: rgba(13, 148, 136, 0.08);
+}
+
+[data-project="agni"] {
+  --project-primary:        var(--agni-copper);
+  --project-secondary:      var(--agni-vermilion);
+  --project-border:         rgba(184, 115, 51, 0.25);
+  --project-surface-accent: rgba(184, 115, 51, 0.08);
+}
+
+[data-project="satyam"] {
+  --project-primary:        var(--astra-indigo);
+  --project-secondary:      var(--agni-copper);
+  --project-border:         rgba(30, 58, 138, 0.25);
+  --project-surface-accent: rgba(30, 58, 138, 0.08);
+}
+
+[data-project="vaidhya"] {
+  --project-primary:        var(--astra-forest);
+  --project-secondary:      var(--agni-copper);
+  --project-border:         rgba(22, 101, 52, 0.25);
+  --project-surface-accent: rgba(22, 101, 52, 0.08);
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--astra-ivory);
+  color:            var(--astra-ink);
+  font-family:      var(--font-sans);
+  font-size:        0.9375rem;
+  line-height:      1.6;
+  font-weight:      400;
+  -webkit-font-smoothing:  antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: rgba(182, 106, 60, 0.25);
+  color: var(--astra-ink);
+}
+
+/* ── Typography helpers ───────────────────────────────────────── */
+.font-display { font-family: var(--font-display); }
+.font-sans    { font-family: var(--font-sans); }
+.font-mono    { font-family: var(--font-mono); }
 
 code,
 pre,
-.font-mono {
-  font-family: 'JetBrains Mono', monospace;
+.mono {
+  font-family: var(--font-mono);
 }
 
-/* Custom modern scrollbar */
+/* ── Scrollbar ────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 6px;
+  width:  6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #0d1326;
+  background: var(--astra-sandstone);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background:    var(--astra-sandstone-dark);
   border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--astra-slate-light);
+}
+
+/* ── AstraX Component Layer ───────────────────────────────────── */
+@layer components {
+
+  /* Astra Card — premium paper surface */
+  .astra-card {
+    background:    var(--astra-ivory);
+    border:        1px solid var(--astra-sandstone-dark);
+    border-radius: var(--radius-xl);
+    box-shadow:    var(--shadow-card);
+    padding:       var(--space-xl);
+    position:      relative;
+    overflow:      hidden;
+    transition:    box-shadow var(--duration-base) var(--ease-astra),
+                   border-color var(--duration-base) var(--ease-astra);
+  }
+  .astra-card:hover {
+    box-shadow:    var(--shadow-md);
+    border-color:  var(--astra-sandstone-dark);
+  }
+
+  /* Astra Card header rule */
+  .astra-card-header {
+    display:         flex;
+    align-items:     center;
+    justify-content: space-between;
+    padding-bottom:  var(--space-md);
+    margin-bottom:   var(--space-md);
+    border-bottom:   1px solid var(--astra-sandstone);
+  }
+
+  /* Section label — small uppercase tracking */
+  .astra-label {
+    font-family:    var(--font-mono);
+    font-size:      0.625rem;
+    font-weight:    600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color:          var(--astra-slate);
+  }
+
+  /* Copper accent line */
+  .astra-rule {
+    display:    block;
+    height:     2px;
+    background: linear-gradient(90deg, var(--agni-copper) 0%, transparent 100%);
+    border:     none;
+    margin:     var(--space-md) 0;
+  }
+
+  /* AGNI Bindu — intelligence convergence point */
+  .agni-bindu {
+    display:       inline-flex;
+    align-items:   center;
+    justify-content: center;
+    width:         8px;
+    height:        8px;
+    border-radius: 50%;
+    background:    var(--agni-copper);
+    box-shadow:    0 0 0 2px rgba(182,106,60,0.2);
+    flex-shrink:   0;
+  }
+  .agni-bindu.live {
+    animation: binduPulse 3s ease-in-out infinite;
+  }
+
+  /* Primary button — Deep Red */
+  .btn-primary {
+    display:          inline-flex;
+    align-items:      center;
+    gap:              8px;
+    padding:          10px 22px;
+    background:       var(--agni-red);
+    color:            var(--astra-ivory);
+    font-family:      var(--font-sans);
+    font-size:        0.8125rem;
+    font-weight:      600;
+    letter-spacing:   0.04em;
+    text-transform:   uppercase;
+    border:           1px solid var(--agni-red-deep);
+    border-radius:    var(--radius);
+    cursor:           pointer;
+    transition:       background var(--duration-base) var(--ease-astra),
+                      box-shadow  var(--duration-base) var(--ease-astra),
+                      transform   var(--duration-fast) var(--ease-astra);
+    box-shadow:       0 2px 8px rgba(126,36,29,0.20);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background:  var(--agni-copper);
+    border-color:var(--agni-terracotta);
+    box-shadow:  0 4px 16px rgba(182,106,60,0.28);
+    transform:   translateY(-1px);
+  }
+  .btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor:  not-allowed;
+  }
+
+  /* Secondary button — Sandstone */
+  .btn-secondary {
+    display:        inline-flex;
+    align-items:    center;
+    gap:            8px;
+    padding:        9px 18px;
+    background:     var(--astra-ivory);
+    color:          var(--astra-ink);
+    font-family:    var(--font-sans);
+    font-size:      0.8125rem;
+    font-weight:    500;
+    border:         1px solid var(--astra-sandstone-dark);
+    border-radius:  var(--radius);
+    cursor:         pointer;
+    transition:     all var(--duration-base) var(--ease-astra);
+    box-shadow:     var(--shadow-sm);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background:   var(--astra-sandstone);
+    border-color: var(--agni-copper);
+    color:        var(--agni-red);
+  }
+
+  /* Status badge — confidence indicator */
+  .confidence-badge {
+    display:        inline-flex;
+    align-items:    center;
+    gap:            5px;
+    padding:        3px 10px;
+    border-radius:  var(--radius-sm);
+    font-family:    var(--font-mono);
+    font-size:      0.625rem;
+    font-weight:    600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .confidence-badge.high {
+    background:   rgba(45,106,79,0.1);
+    color:        var(--status-positive);
+    border:       1px solid rgba(45,106,79,0.25);
+  }
+  .confidence-badge.medium {
+    background:   rgba(194,132,42,0.1);
+    color:        var(--status-warning);
+    border:       1px solid rgba(194,132,42,0.25);
+  }
+  .confidence-badge.low {
+    background:   rgba(192,57,43,0.1);
+    color:        var(--status-critical);
+    border:       1px solid rgba(192,57,43,0.25);
+  }
+
+  /* Status ring — live status pulse */
+  .status-ring {
+    position:  relative;
+    display:   inline-flex;
+    width:     10px;
+    height:    10px;
+    flex-shrink: 0;
+  }
+  .status-ring::before {
+    content:       '';
+    position:      absolute;
+    inset:         0;
+    border-radius: 50%;
+    background:    currentColor;
+    opacity:       0.3;
+    animation:     statusPing 2s ease-out infinite;
+  }
+  .status-ring::after {
+    content:       '';
+    position:      absolute;
+    inset:         2px;
+    border-radius: 50%;
+    background:    currentColor;
+  }
+
+  /* Astra section header */
+  .section-header {
+    display:        flex;
+    align-items:    baseline;
+    gap:            12px;
+    margin-bottom:  var(--space-lg);
+  }
+  .section-header h2,
+  .section-header h3 {
+    font-family:  var(--font-display);
+    color:        var(--astra-ink);
+    line-height:  1.2;
+  }
+  .section-header .astra-label {
+    margin-top: 2px;
+  }
+
+  /* Evidence card — source provenance */
+  .evidence-card {
+    background:    var(--astra-ivory);
+    border:        1px solid var(--astra-sandstone-dark);
+    border-left:   3px solid var(--agni-copper);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    padding:       14px 16px;
+    transition:    border-left-color var(--duration-base) var(--ease-astra),
+                   box-shadow        var(--duration-base) var(--ease-astra);
+  }
+  .evidence-card:hover {
+    border-left-color: var(--agni-red);
+    box-shadow:        var(--shadow-sm);
+  }
+
+  /* Trace step */
+  .trace-step {
+    display:       flex;
+    align-items:   flex-start;
+    gap:           12px;
+    padding:       14px 16px;
+    border-radius: var(--radius-md);
+    border:        1px solid var(--astra-sandstone);
+    background:    var(--astra-ivory);
+    transition:    background var(--duration-fast) var(--ease-astra),
+                   border-color var(--duration-fast) var(--ease-astra);
+  }
+  .trace-step:hover {
+    background:   var(--astra-sandstone);
+    border-color: var(--astra-sandstone-dark);
+  }
+
+  /* Preset card — workflow preset selector */
+  .preset-card {
+    padding:       12px 14px;
+    border-radius: var(--radius-md);
+    border:        1px solid var(--astra-sandstone-dark);
+    background:    var(--astra-ivory);
+    cursor:        pointer;
+    text-align:    left;
+    transition:    all var(--duration-base) var(--ease-astra);
+    box-shadow:    var(--shadow-sm);
+  }
+  .preset-card:hover {
+    border-color: var(--agni-copper);
+    background:   var(--astra-sandstone);
+    box-shadow:   var(--shadow-md);
+    transform:    translateY(-1px);
+  }
+  .preset-card.active {
+    border-color: var(--agni-red);
+    background:   rgba(126,36,29,0.04);
+    box-shadow:   0 0 0 1px var(--agni-red), var(--shadow-sm);
+  }
+
+  /* Intelligence tag pill */
+  .intel-tag {
+    display:        inline-flex;
+    align-items:    center;
+    gap:            5px;
+    padding:        3px 9px;
+    border-radius:  var(--radius-sm);
+    font-family:    var(--font-mono);
+    font-size:      0.625rem;
+    font-weight:    600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background:     rgba(182,106,60,0.08);
+    color:          var(--agni-copper);
+    border:         1px solid rgba(182,106,60,0.2);
+  }
+}
+
+/* ── Astra Watermark ──────────────────────────────────────────── */
+.astra-watermark {
+  position:       absolute;
+  pointer-events: none;
+  user-select:    none;
+  opacity:        0.04;
+  z-index:        0;
+}
+.astra-watermark > * {
+  display: block;
+}
+
+/* ── Heat Field decoration ────────────────────────────────────── */
+.agni-heat-field {
+  position: relative;
+  overflow: hidden;
+}
+.agni-heat-field::before {
+  content:       '';
+  position:      absolute;
+  inset:         -40%;
+  background:    radial-gradient(
+    ellipse at center,
+    rgba(182,106,60,0.07) 0%,
+    rgba(126,36,29,0.05) 35%,
+    transparent 70%
+  );
+  pointer-events: none;
+  animation:     heatExpand 6s ease-in-out infinite;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────────── */
+.astra-sidebar {
+  background: var(--agni-red-deep);
+  color:      var(--astra-ivory);
+  position:   fixed;
+  left:       0;
+  top:        0;
+  height:     100vh;
+  width:      240px;
+  display:    flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index:    40;
+  box-shadow: 4px 0 24px rgba(24,32,43,0.12);
+  transition: width var(--duration-slow) var(--ease-astra);
+}
+
+.astra-sidebar .nav-item {
+  display:        flex;
+  align-items:    center;
+  gap:            10px;
+  padding:        9px 16px;
+  border-radius:  var(--radius);
+  margin:         2px 12px;
+  color:          rgba(245,239,227,0.65);
+  font-family:    var(--font-sans);
+  font-size:      0.8125rem;
+  font-weight:    500;
+  cursor:         pointer;
+  transition:     all var(--duration-base) var(--ease-astra);
+  position:       relative;
+  text-decoration: none;
+}
+.astra-sidebar .nav-item:hover {
+  background: rgba(245,239,227,0.08);
+  color:      var(--astra-ivory);
+}
+.astra-sidebar .nav-item.active {
+  background: var(--astra-ivory);
+  color:      var(--agni-red);
+  font-weight: 600;
+}
+.astra-sidebar .nav-item.active::before {
+  content:       '';
+  position:      absolute;
+  left:          0;
+  top:           50%;
+  transform:     translateY(-50%);
+  width:         3px;
+  height:        60%;
+  border-radius: 0 2px 2px 0;
+  background:    var(--agni-copper);
+}
+.astra-sidebar .nav-section-label {
+  font-family:    var(--font-mono);
+  font-size:      0.5625rem;
+  font-weight:    600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color:          rgba(245,239,227,0.35);
+  padding:        16px 28px 6px;
+}
+.astra-sidebar .nav-item svg {
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+.astra-sidebar .nav-item.active svg,
+.astra-sidebar .nav-item:hover svg {
+  opacity: 1;
+}
+
+/* ── Top Bar ──────────────────────────────────────────────────── */
+.astra-topbar {
+  height:          56px;
+  background:      var(--astra-ivory);
+  border-bottom:   1px solid var(--astra-sandstone-dark);
+  display:         flex;
+  align-items:     center;
+  padding:         0 24px;
+  position:        sticky;
+  top:             0;
+  z-index:         30;
+  box-shadow:      0 1px 4px rgba(24,32,43,0.06);
+  gap:             16px;
+}
+.astra-search {
+  flex:             1;
+  max-width:        480px;
+  display:          flex;
+  align-items:      center;
+  gap:              10px;
+  padding:          8px 14px;
+  border:           1px solid var(--astra-sandstone-dark);
+  border-radius:    var(--radius);
+  background:       var(--astra-sandstone);
+  transition:       all var(--duration-base) var(--ease-astra);
+  cursor:           text;
+}
+.astra-search:focus-within {
+  border-color: var(--agni-copper);
+  background:   var(--astra-ivory);
+  box-shadow:   0 0 0 3px rgba(182,106,60,0.12);
+}
+.astra-search input {
+  flex:          1;
+  border:        none;
+  background:    transparent;
+  outline:       none;
+  font-family:   var(--font-sans);
+  font-size:     0.8125rem;
+  color:         var(--astra-ink);
+}
+.astra-search input::placeholder {
+  color: var(--astra-slate-light);
+}
+
+/* ── Intelligence textarea ────────────────────────────────────── */
+.intel-textarea {
+  width:         100%;
+  border:        1px solid var(--astra-sandstone-dark);
+  border-radius: var(--radius-lg);
+  background:    var(--astra-sandstone);
+  padding:       14px 16px;
+  font-family:   var(--font-sans);
+  font-size:     0.9rem;
+  color:         var(--astra-ink);
+  line-height:   1.6;
+  resize:        vertical;
+  transition:    all var(--duration-base) var(--ease-astra);
+  outline:       none;
+}
+.intel-textarea:focus {
+  border-color: var(--agni-copper);
+  background:   var(--astra-ivory);
+  box-shadow:   0 0 0 3px rgba(182,106,60,0.10);
+}
+.intel-textarea::placeholder {
+  color: var(--astra-slate-light);
+}
+
+/* ── Astra Sutra SVG Lines ────────────────────────────────────── */
+.sutra-line {
+  stroke:           var(--agni-copper);
+  stroke-width:     1;
+  fill:             none;
+  stroke-dasharray: 100%;
+  stroke-dashoffset: 0;
+  opacity:          0.3;
+}
+
+/* ── Focus ring — accessibility ───────────────────────────────── */
+:focus-visible {
+  outline:        2px solid var(--agni-copper);
+  outline-offset: 2px;
+  border-radius:  var(--radius-sm);
+}
+
+/* ── Keyframes ────────────────────────────────────────────────── */
+@keyframes binduPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.15); }
+}
+@keyframes heatExpand {
+  0%, 100% { transform: scale(1);    opacity: 0.04; }
+  50%       { transform: scale(1.04); opacity: 0.06; }
+}
+@keyframes fadeUp {
+  0%   { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes statusPing {
+  0%   { transform: scale(0.8); opacity: 0.6; }
+  70%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Loading shimmer ──────────────────────────────────────────── */
+.shimmer {
+  background:           linear-gradient(
+    90deg,
+    var(--astra-sandstone) 0%,
+    var(--astra-ivory-dim) 50%,
+    var(--astra-sandstone) 100%
+  );
+  background-size:      200% 100%;
+  animation:            shimmer 2s linear infinite;
+  border-radius:        var(--radius-sm);
+}
+
+/* ── Responsive — mobile drawer ───────────────────────────────── */
+@media (max-width: 768px) {
+  .astra-sidebar {
+    transform:  translateX(-100%);
+    width:      280px;
+    transition: transform var(--duration-slow) var(--ease-astra);
+  }
+  .astra-sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+/* ── Utility overrides ────────────────────────────────────────── */
+.text-agni-red   { color: var(--agni-red); }
+.text-agni-copper{ color: var(--agni-copper); }
+.text-astra-ink  { color: var(--astra-ink); }
+.text-astra-slate{ color: var(--astra-slate); }
+.bg-astra-ivory  { background-color: var(--astra-ivory); }
+.bg-astra-sandstone { background-color: var(--astra-sandstone); }
+
+/* ── Print ────────────────────────────────────────────────────── */
+@media print {
+  .astra-sidebar,
+  .astra-topbar { display: none; }
+  body { background: #fff; color: #000; }
 }

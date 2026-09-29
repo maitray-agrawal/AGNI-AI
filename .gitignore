@@ -32,3 +32,6 @@ outputs/*.db
 frontend/node_modules/
 frontend/dist/
 frontend/.env.local
+
+# Archives
+*.zip

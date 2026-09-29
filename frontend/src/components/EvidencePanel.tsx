@@ -1,54 +1,158 @@
 import React from 'react';
 import { BookOpen, FileCheck, MapPin } from 'lucide-react';
+import { AstraMark } from './AstraMark';
 
 interface EvidencePanelProps {
   citations?: Array<{
     document: string;
-    page: number;
-    section: string;
-    text: string;
+    page:     number;
+    section:  string;
+    text:     string;
   }>;
 }
 
 export const EvidencePanel: React.FC<EvidencePanelProps> = ({ citations }) => {
   if (!citations || !citations.length) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-[#0f172a]/60 p-6 text-center text-slate-400 text-sm">
-        <BookOpen className="w-8 h-8 mx-auto mb-2 text-slate-600 opacity-60" />
-        No retrieved knowledge citations. Citations from Qdrant appear here upon RAG retrieval.
+      <div
+        className="astra-card flex flex-col items-center justify-center py-10 text-center"
+        style={{ minHeight: 160 }}
+      >
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center mb-3"
+          style={{ background: 'var(--astra-sandstone)', color: 'var(--astra-slate)' }}
+        >
+          <BookOpen className="w-4.5 h-4.5" />
+        </div>
+        <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.8125rem', color: 'var(--astra-slate)', maxWidth: '26ch', lineHeight: 1.6 }}>
+          No retrieved citations. Knowledge sources appear here upon RAG retrieval.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-[#0f172a]/80 overflow-hidden shadow-xl">
-      <div className="px-5 py-3.5 border-b border-slate-800/80 bg-slate-900/40 flex items-center space-x-2">
-        <BookOpen className="w-4 h-4 text-sky-400" />
-        <h3 className="text-sm font-semibold text-white tracking-wide">GROUNDED INDUSTRIAL CITATIONS (LOCAL RAG)</h3>
+    <div className="astra-card" style={{ padding: 0, overflow: 'hidden' }}>
+      {/* Card header */}
+      <div
+        className="px-5 py-3.5 flex items-center gap-2.5"
+        style={{
+          borderBottom: '1px solid var(--astra-sandstone-dark)',
+          background:   'var(--astra-sandstone)',
+        }}
+      >
+        <BookOpen className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--agni-copper)' }} />
+        <h3
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize:   '0.9375rem',
+            fontWeight: 600,
+            color:      'var(--astra-ink)',
+          }}
+        >
+          Grounded Source Citations
+        </h3>
+        <span className="intel-tag ml-auto">Local RAG</span>
       </div>
 
-      <div className="p-5 space-y-3">
+      {/* Citations */}
+      <div className="p-4 space-y-3">
         {citations.map((c, i) => (
-          <div key={i} className="p-3.5 rounded-lg border border-slate-800/80 bg-slate-950/50 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <FileCheck className="w-4 h-4 text-emerald-400" />
-                <span className="font-semibold text-xs text-sky-300 font-mono">{c.document}</span>
+          <div
+            key={i}
+            className="evidence-card"
+            style={{ animation: `fadeUp 0.3s ease-out ${i * 0.08}s both` }}
+          >
+            {/* Source metadata */}
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <FileCheck className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--status-positive)' }} />
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize:   '0.6875rem',
+                    fontWeight: 700,
+                    color:      'var(--astra-indigo)',
+                    overflow:   'hidden',
+                    textOverflow:'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {c.document}
+                </span>
               </div>
-              <div className="flex items-center space-x-1 text-[11px] text-slate-400 font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                <MapPin className="w-3 h-3 text-orange-400" />
-                <span>Page {c.page} • {c.section}</span>
+              <div
+                className="flex items-center gap-1 flex-shrink-0 px-2 py-0.5 rounded"
+                style={{
+                  background:  'var(--astra-sandstone)',
+                  border:      '1px solid var(--astra-sandstone-dark)',
+                  fontFamily:  'var(--font-mono)',
+                  fontSize:    '0.5625rem',
+                  color:       'var(--astra-slate)',
+                  fontWeight:  600,
+                  whiteSpace:  'nowrap',
+                }}
+              >
+                <MapPin className="w-2.5 h-2.5" style={{ color: 'var(--agni-copper)' }} />
+                <span>p.{c.page}</span>
               </div>
             </div>
-            <p className="text-xs text-slate-300 italic border-l-2 border-slate-700 pl-3 leading-relaxed">
+
+            {/* Section reference */}
+            <div
+              className="mb-2"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize:   '0.5625rem',
+                color:      'var(--astra-slate)',
+                letterSpacing:'0.04em',
+              }}
+            >
+              {c.section}
+            </div>
+
+            {/* Citation text */}
+            <blockquote
+              style={{
+                fontFamily: 'var(--font-serif)',
+                fontSize:   '0.8125rem',
+                color:      'var(--astra-ink)',
+                lineHeight: 1.65,
+                fontStyle:  'italic',
+                margin:     0,
+                paddingLeft:'10px',
+                borderLeft: '2px solid var(--agni-copper)',
+              }}
+            >
               "{c.text}"
-            </p>
+            </blockquote>
+
+            {/* Confidence indicator */}
+            <div className="mt-2 flex items-center gap-2">
+              <span className="confidence-badge high">
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--status-positive)', display: 'inline-block' }} />
+                High Confidence
+              </span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.5rem', color: 'var(--astra-slate-light)' }}>
+                Local Vector DB · Qdrant
+              </span>
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="px-5 py-2.5 bg-slate-900/40 border-t border-slate-800/80 text-[10px] text-slate-500 font-mono italic">
-        Demo corpus — synthetic/public industrial demonstration documents; no proprietary MRPL information is included.
+      {/* Footer */}
+      <div
+        className="px-5 py-2.5"
+        style={{
+          borderTop:  '1px solid var(--astra-sandstone-dark)',
+          fontFamily: 'var(--font-mono)',
+          fontSize:   '0.5625rem',
+          color:      'var(--astra-slate)',
+          fontStyle:  'italic',
+        }}
+      >
+        Demo corpus — synthetic/public industrial demonstration documents; no proprietary information included.
       </div>
     </div>
   );
