@@ -4,6 +4,7 @@ import { feature, mesh } from 'topojson-client';
 import { X, Globe2, Radio, Compass, ShieldAlert, ArrowUpRight } from 'lucide-react';
 import worldData from '../data/world-110m.json';
 import { useAstraTheme } from '../brand/AstraThemeContext';
+import { fetchEvents } from '../api/client';
 
 /* ──────────────────────────────────────────────────────────────────
    GlobalSignalField — AGNI Geopolitical & Maritime Intelligence Map
@@ -239,9 +240,58 @@ export const GlobalSignalField: React.FC<{ className?: string; liveCount?: numbe
   const isDark = theme === 'dark';
   const isSandstone = theme === 'sandstone';
 
+  const [signalsList, setSignalsList] = useState<GeopoliticalSignal[]>(REAL_SIGNALS);
   const [activeSignal, setActiveSignal] = useState<GeopoliticalSignal | null>(null);
   const [hoveredSignal, setHoveredSignal] = useState<GeopoliticalSignal | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+
+  const loadLiveSignals = async () => {
+    try {
+      const backendEvents = await fetchEvents();
+      if (backendEvents && Array.isArray(backendEvents) && backendEvents.length > 0) {
+        const mapped: GeopoliticalSignal[] = backendEvents.map((e: any) => ({
+          id: e.event_id,
+          name: e.title,
+          region: e.region || 'Strategic Theater',
+          country: e.country || 'Global Corridor',
+          longitude: Number(e.longitude),
+          latitude: Number(e.latitude),
+          severity: (['critical', 'high', 'elevated', 'moderate', 'info'].includes(e.severity) ? e.severity : 'elevated') as any,
+          signalCount: Math.max(3, Math.round((e.confidence || 0.85) * 16)),
+          category: (
+            e.event_type === 'maritime_disruption' ? 'Maritime Chokepoint' :
+            e.event_type === 'energy_disruption' ? 'Energy Flow' :
+            e.event_type === 'commodity_supply_shock' ? 'Supply Chain' :
+            e.event_type === 'sanctions' ? 'Sanctions Cascade' : 'Security Corridor'
+          ),
+          timestamp: 'Live Feed',
+          headline: e.title,
+          intelligenceBrief: e.description,
+          strategicImpact: e.transmission_channels?.length
+            ? e.transmission_channels.join(' → ')
+            : (e.affected_assets?.length ? `Volatility transmission to ${e.affected_assets.join(', ')}` : e.description),
+        }));
+
+        const existingIds = new Set(mapped.map(m => m.id));
+        const merged = [...mapped];
+        for (const r of REAL_SIGNALS) {
+          const isDup = merged.some(m => Math.hypot(m.longitude - r.longitude, m.latitude - r.latitude) < 0.8);
+          if (!isDup && !existingIds.has(r.id)) {
+            merged.push(r);
+          }
+        }
+        setSignalsList(merged);
+      }
+    } catch (err) {
+      console.warn('Live signal fetch fallback to static dataset:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadLiveSignals();
+    window.addEventListener('agni-event-created', loadLiveSignals);
+    return () => window.removeEventListener('agni-event-created', loadLiveSignals);
+  }, []);
 
   // Map SVG Dimensions
   const MAP_WIDTH = 960;
@@ -269,7 +319,7 @@ export const GlobalSignalField: React.FC<{ className?: string; liveCount?: numbe
 
   // Compute screen coordinates for each real signal
   const projectedSignals = useMemo(() => {
-    return REAL_SIGNALS.map(sig => {
+    return signalsList.map(sig => {
       const coords = projection([sig.longitude, sig.latitude]) || [0, 0];
       return {
         ...sig,
@@ -277,7 +327,7 @@ export const GlobalSignalField: React.FC<{ className?: string; liveCount?: numbe
         y: coords[1],
       };
     });
-  }, [projection]);
+  }, [projection, signalsList]);
 
   const signalMap = useMemo(() => {
     const m: Record<string, typeof projectedSignals[0]> = {};

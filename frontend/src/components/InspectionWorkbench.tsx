@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import {
   Play, Upload, FileText, CheckCircle2, XCircle,
   RefreshCw, Clock, AlertTriangle, ShieldCheck, Zap,
-  BookOpen, ChevronRight
+  BookOpen, ChevronRight, Globe, Send, Check, ShieldAlert,
+  Sliders, Layers, Radio
 } from 'lucide-react';
 import { TaskRunResponse } from '../types';
-import { submitTask, uploadDocument } from '../api/client';
+import { submitTask, uploadDocument, createManualEvent } from '../api/client';
 import { AgniLogo } from '../brand/AgniLogo';
 import { AstraSeal } from '../brand/AstraSeal';
 import { AgniLoadingMark } from '../brand/AgniLoadingMark';
@@ -38,16 +39,156 @@ const PRESETS = [
   },
 ];
 
+const SHOCK_TEMPLATES = [
+  {
+    label: 'Malacca Strait AIS Jamming',
+    title: 'Malacca Strait Maritime Radar & AIS Telemetry Interruption',
+    type: 'maritime_disruption',
+    country: 'Singapore / Malaysia',
+    region: 'Southeast Asia',
+    lat: 1.35,
+    lon: 103.82,
+    severity: 'critical' as const,
+    confidence: 0.90,
+    assets: 'SPX, BRENT, CONTAINER_SCFI',
+    commodities: 'BRENT_CRUDE, LNG, COPPER',
+    routes: 'East Asia - Europe Maritime Trunk',
+    transmission: 'AIS Telemetry Disruption -> Tanker Speed Reduction -> Spot War-Risk Premium +95% -> Container Freight Index Jump',
+    description: 'Multiple commercial vessels report widespread GPS telemetry interference and electronic spoofing in northern approach sectors of Singapore Strait.',
+  },
+  {
+    label: 'Hormuz Tanker Escort Probe',
+    title: 'Strait of Hormuz Naval Boarding Probes & Tanker Halts',
+    type: 'energy_disruption',
+    country: 'Iran / Oman',
+    region: 'Persian Gulf',
+    lat: 26.56,
+    lon: 56.25,
+    severity: 'critical' as const,
+    confidence: 0.94,
+    assets: 'BRENT, VIX, US10Y',
+    commodities: 'BRENT_CRUDE, TTF_GAS',
+    routes: 'Persian Gulf Crude Trunk to Asia & Europe',
+    transmission: 'Naval Patrol Interdictions -> Lloyd\'s War-Risk Zone Elevation -> Crude Tanker Day-Rates +140% -> Brent Volatility Spike',
+    description: 'Armed surface vessels reported approaching commercial VLCC crude carriers in inbound transit lanes near Musandam Peninsula.',
+  },
+  {
+    label: 'Bab el-Mandeb Drone Strike',
+    title: 'Bab el-Mandeb Commercial Container Vessel Anti-Ship Probe',
+    type: 'maritime_disruption',
+    country: 'Yemen / Djibouti',
+    region: 'Red Sea / Horn of Africa',
+    lat: 12.58,
+    lon: 43.33,
+    severity: 'critical' as const,
+    confidence: 0.92,
+    assets: 'CONTAINER_SCFI, BRENT, SPX',
+    commodities: 'BRENT_CRUDE, TTF_GAS, WHEAT',
+    routes: 'Asia-Europe via Suez Canal',
+    transmission: 'Anti-Ship Drone Strikes -> Cape of Good Hope Diversion (+12 Days) -> Fleet Capacity Absorption -> Global Freight Rate Surge',
+    description: 'Continued asymmetric missile probes forcing major container carriers to route vessels south of Cape of Good Hope, adding 3,500 nautical miles.',
+  },
+  {
+    label: 'Panama Canal Gatun Draft Cuts',
+    title: 'Panama Canal Gatun Lake Water Level Maximum Draft Reductions',
+    type: 'infrastructure_disruption',
+    country: 'Panama',
+    region: 'Central America',
+    lat: 9.12,
+    lon: -79.72,
+    severity: 'high' as const,
+    confidence: 0.88,
+    assets: 'SPX, CONTAINER_SCFI',
+    commodities: 'LNG, WHEAT, COPPER',
+    routes: 'US Gulf to Asia Energy & Agricultural Trunk',
+    transmission: 'Reservoir Depletion -> Daily Transit Slot Restrictions -> Auction Slot Premium Spikes -> Agricultural Export Transit Bottlenecks',
+    description: 'Panama Canal Authority lowers maximum allowable draft for Neopanamax vessels, restricting cargo weight and forcing slot rationing.',
+  },
+];
+
 export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
   onTaskCompleted,
   isLoading,
   setIsLoading,
   latestResponse,
 }) => {
-  const [prompt, setPrompt] = useState<string>(PRESETS[0].prompt);
+  const [workbenchMode, setWorkbenchMode]   = useState<'audit' | 'analyst_studio'>('audit');
+  const [prompt, setPrompt]                 = useState<string>(PRESETS[0].prompt);
   const [selectedFile, setSelectedFile]     = useState<string>(PRESETS[0].file);
   const [uploadStatus, setUploadStatus]     = useState<string>('Preloaded: MRPL_Inspection_Report_P204.pdf');
   const [activePreset, setActivePreset]     = useState<number>(0);
+
+  // ── Analyst Studio: Manual Event Ingestion State ────────────────
+  const [manualTitle, setManualTitle]               = useState<string>(SHOCK_TEMPLATES[0].title);
+  const [manualType, setManualType]                 = useState<string>(SHOCK_TEMPLATES[0].type);
+  const [manualCountry, setManualCountry]           = useState<string>(SHOCK_TEMPLATES[0].country);
+  const [manualRegion, setManualRegion]             = useState<string>(SHOCK_TEMPLATES[0].region);
+  const [manualLat, setManualLat]                   = useState<number>(SHOCK_TEMPLATES[0].lat);
+  const [manualLon, setManualLon]                   = useState<number>(SHOCK_TEMPLATES[0].lon);
+  const [manualSeverity, setManualSeverity]         = useState<'critical' | 'high' | 'elevated' | 'moderate' | 'info'>(SHOCK_TEMPLATES[0].severity);
+  const [manualConfidence, setManualConfidence]     = useState<number>(SHOCK_TEMPLATES[0].confidence);
+  const [manualAssets, setManualAssets]             = useState<string>(SHOCK_TEMPLATES[0].assets);
+  const [manualCommodities, setManualCommodities]   = useState<string>(SHOCK_TEMPLATES[0].commodities);
+  const [manualRoutes, setManualRoutes]             = useState<string>(SHOCK_TEMPLATES[0].routes);
+  const [manualTransmission, setManualTransmission] = useState<string>(SHOCK_TEMPLATES[0].transmission);
+  const [manualDesc, setManualDesc]                 = useState<string>(SHOCK_TEMPLATES[0].description);
+  const [eventSubmitStatus, setEventSubmitStatus]   = useState<string | null>(null);
+  const [isSubmittingEvent, setIsSubmittingEvent]   = useState<boolean>(false);
+
+  const loadTemplate = (idx: number) => {
+    const t = SHOCK_TEMPLATES[idx];
+    setManualTitle(t.title);
+    setManualType(t.type);
+    setManualCountry(t.country);
+    setManualRegion(t.region);
+    setManualLat(t.lat);
+    setManualLon(t.lon);
+    setManualSeverity(t.severity);
+    setManualConfidence(t.confidence);
+    setManualAssets(t.assets);
+    setManualCommodities(t.commodities);
+    setManualRoutes(t.routes);
+    setManualTransmission(t.transmission);
+    setManualDesc(t.description);
+    setEventSubmitStatus(null);
+  };
+
+  const handleManualEventSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualTitle.trim()) return;
+    setIsSubmittingEvent(true);
+    setEventSubmitStatus(null);
+    try {
+      const payload = {
+        event_id: `evt-analyst-${Date.now().toString(36)}`,
+        timestamp: new Date().toISOString(),
+        event_type: manualType,
+        title: manualTitle,
+        description: manualDesc,
+        country: manualCountry,
+        region: manualRegion,
+        latitude: Number(manualLat),
+        longitude: Number(manualLon),
+        severity: manualSeverity,
+        confidence: Number(manualConfidence),
+        source: 'Analyst Sovereign Console',
+        affected_assets: manualAssets.split(',').map(s => s.trim()).filter(Boolean),
+        affected_commodities: manualCommodities.split(',').map(s => s.trim()).filter(Boolean),
+        affected_routes: manualRoutes.split(',').map(s => s.trim()).filter(Boolean),
+        transmission_channels: manualTransmission.split('->').map(s => s.trim()).filter(Boolean),
+        is_demo_data: false,
+      };
+      const res = await createManualEvent(payload);
+      setEventSubmitStatus(`Shock Event "${res.title}" ingested into canonical store. Risk engine evaluated deterministic score.`);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('agni-event-created', { detail: res }));
+      }
+    } catch (err: any) {
+      setEventSubmitStatus(`Failed to ingest event: ${err.message}`);
+    } finally {
+      setIsSubmittingEvent(false);
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
@@ -91,7 +232,7 @@ export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
     >
       {/* ── Card header ──────────────────────────────────── */}
       <div
-        className="px-6 py-4 flex items-center justify-between"
+        className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
         style={{
           borderBottom: '1px solid var(--astra-sandstone-dark)',
           background:   'var(--astra-sandstone)',
@@ -117,12 +258,45 @@ export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
               Autonomous Intelligence Workbench
             </h2>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.5625rem', color: 'var(--astra-slate)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              Deterministic On-Premise Workflow · Evidence-Grounded
+              Deterministic On-Premise Workflow · Evidence-Grounded · Manual-First Ingestion
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Tab Switcher & Status */}
+        <div className="flex items-center gap-3">
+          <div
+            className="inline-flex rounded-md p-0.5 border"
+            style={{ borderColor: 'var(--astra-sandstone-dark)', background: 'rgba(0,0,0,0.03)' }}
+          >
+            <button
+              type="button"
+              onClick={() => setWorkbenchMode('audit')}
+              className="px-2.5 py-1 text-xs font-mono font-medium rounded transition-all flex items-center gap-1.5"
+              style={{
+                background: workbenchMode === 'audit' ? 'var(--astra-sandstone)' : 'transparent',
+                color: workbenchMode === 'audit' ? 'var(--astra-ink)' : 'var(--astra-slate)',
+                boxShadow: workbenchMode === 'audit' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+              }}
+            >
+              <FileText className="w-3 h-3" />
+              <span>Document Audit</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setWorkbenchMode('analyst_studio')}
+              className="px-2.5 py-1 text-xs font-mono font-medium rounded transition-all flex items-center gap-1.5"
+              style={{
+                background: workbenchMode === 'analyst_studio' ? 'var(--astra-sandstone)' : 'transparent',
+                color: workbenchMode === 'analyst_studio' ? 'var(--agni-copper)' : 'var(--astra-slate)',
+                boxShadow: workbenchMode === 'analyst_studio' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+              }}
+            >
+              <Globe className="w-3 h-3 text-agni-copper" />
+              <span>Analyst Studio (Geo-Shock)</span>
+            </button>
+          </div>
+
           {isLoading && (
             <span
               style={{
@@ -143,114 +317,351 @@ export const InspectionWorkbench: React.FC<InspectionWorkbenchProps> = ({
       </div>
 
       <div className="p-6 space-y-5">
-        {/* ── Workflow presets ───────────────────────────── */}
-        <div>
-          <div className="astra-label mb-3">Select Analytical Workflow Preset</div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {PRESETS.map((preset, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => selectPreset(idx)}
-                className={`preset-card ${activePreset === idx ? 'active' : ''}`}
-                aria-pressed={activePreset === idx}
-              >
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-sans)',
-                      fontSize:   '0.8125rem',
-                      fontWeight: 600,
-                      color:      activePreset === idx ? 'var(--agni-red)' : 'var(--astra-ink)',
-                      lineHeight: 1.3,
-                    }}
+        {workbenchMode === 'audit' ? (
+          <>
+            {/* ── Workflow presets ───────────────────────────── */}
+            <div>
+              <div className="astra-label mb-3">Select Analytical Workflow Preset</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {PRESETS.map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => selectPreset(idx)}
+                    className={`preset-card ${activePreset === idx ? 'active' : ''}`}
+                    aria-pressed={activePreset === idx}
                   >
-                    {preset.title}
-                  </span>
-                  <span className="intel-tag flex-shrink-0">{preset.tag}</span>
-                </div>
-                <p
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-sans)',
+                          fontSize:   '0.8125rem',
+                          fontWeight: 600,
+                          color:      activePreset === idx ? 'var(--agni-red)' : 'var(--astra-ink)',
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {preset.title}
+                      </span>
+                      <span className="intel-tag flex-shrink-0">{preset.tag}</span>
+                    </div>
+                    <p
+                      style={{
+                        fontFamily: 'var(--font-sans)',
+                        fontSize:   '0.6875rem',
+                        color:      'var(--astra-slate)',
+                        lineHeight: 1.5,
+                        display:    '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient:'vertical',
+                        overflow:   'hidden',
+                      }}
+                    >
+                      {preset.prompt}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Task instruction textarea ──────────────────── */}
+            <div>
+              <label
+                htmlFor="intel-query"
+                className="astra-label mb-2 block"
+              >
+                Intelligence Query / Task Instruction
+              </label>
+              <textarea
+                id="intel-query"
+                rows={4}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                className="intel-textarea"
+                placeholder="Specify an intelligence task, document analysis request, or engineering calculation…"
+              />
+            </div>
+
+            {/* ── File & action bar ─────────────────────────── */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+              <div className="flex items-center gap-3">
+                <label className="btn-secondary cursor-pointer">
+                  <Upload className="w-3.5 h-3.5" style={{ color: 'var(--agni-copper)' }} />
+                  <span>Upload Document</span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.png,.jpg,.jpeg,.csv"
+                    onChange={handleFileUpload}
+                  />
+                </label>
+                <span
+                  className="flex items-center gap-1.5"
                   style={{
-                    fontFamily: 'var(--font-sans)',
+                    fontFamily: 'var(--font-mono)',
                     fontSize:   '0.6875rem',
                     color:      'var(--astra-slate)',
-                    lineHeight: 1.5,
-                    display:    '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient:'vertical',
-                    overflow:   'hidden',
                   }}
                 >
-                  {preset.prompt}
-                </p>
+                  <FileText className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--agni-copper)' }} />
+                  {uploadStatus}
+                </span>
+              </div>
+
+              <button
+                onClick={handleExecute}
+                disabled={isLoading}
+                className="btn-primary"
+                aria-busy={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Executing Agent…</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4 fill-current" />
+                    <span>Execute Autonomous Workflow</span>
+                  </>
+                )}
               </button>
-            ))}
-          </div>
-        </div>
+            </div>
+          </>
+        ) : (
+          /* ── Analyst Studio: Geo-Shock & Event Ingestion ────────────────── */
+          <form onSubmit={handleManualEventSubmit} className="space-y-4">
+            <div>
+              <div className="astra-label mb-2 flex items-center justify-between">
+                <span>Load Scenario Shock Template</span>
+                <span className="text-[10px] font-mono text-astra-slate uppercase tracking-wider">
+                  Canonical Event Ingestion
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {SHOCK_TEMPLATES.map((tpl, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => loadTemplate(idx)}
+                    className="px-3 py-2 text-left rounded border transition-all text-xs font-mono"
+                    style={{
+                      background: 'var(--astra-sandstone)',
+                      borderColor: 'var(--astra-sandstone-dark)',
+                      color: 'var(--astra-ink)',
+                    }}
+                  >
+                    <div className="font-semibold truncate text-[11px] text-agni-copper">{tpl.label}</div>
+                    <div className="text-[10px] text-astra-slate truncate">{tpl.region}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {/* ── Task instruction textarea ──────────────────── */}
-        <div>
-          <label
-            htmlFor="intel-query"
-            className="astra-label mb-2 block"
-          >
-            Intelligence Query / Task Instruction
-          </label>
-          <textarea
-            id="intel-query"
-            rows={4}
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            className="intel-textarea"
-            placeholder="Specify an intelligence task, document analysis request, or engineering calculation…"
-          />
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="astra-label mb-1.5 block">Shock Event Title</label>
+                <input
+                  type="text"
+                  value={manualTitle}
+                  onChange={(e) => setManualTitle(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded border bg-transparent font-sans"
+                  style={{ borderColor: 'var(--astra-sandstone-dark)', color: 'var(--astra-ink)' }}
+                  required
+                />
+              </div>
 
-        {/* ── File & action bar ─────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-          <div className="flex items-center gap-3">
-            <label className="btn-secondary cursor-pointer">
-              <Upload className="w-3.5 h-3.5" style={{ color: 'var(--agni-copper)' }} />
-              <span>Upload Document</span>
+              <div>
+                <label className="astra-label mb-1.5 block">Event Classification</label>
+                <select
+                  value={manualType}
+                  onChange={(e) => setManualType(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded border bg-transparent font-sans"
+                  style={{ borderColor: 'var(--astra-sandstone-dark)', color: 'var(--astra-ink)' }}
+                >
+                  <option value="maritime_disruption">Maritime Corridor Disruption</option>
+                  <option value="energy_disruption">Energy Supply & Transit Shock</option>
+                  <option value="commodity_supply_shock">Commodity Supply Shock</option>
+                  <option value="armed_conflict">Armed Conflict Escalation</option>
+                  <option value="sanctions">Sanctions & Trade Restriction</option>
+                  <option value="trade_restriction">Export Control / Tariff Shock</option>
+                  <option value="infrastructure_disruption">Critical Infrastructure Failure</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="astra-label mb-1.5 block">Sovereign / Country Actor</label>
+                <input
+                  type="text"
+                  value={manualCountry}
+                  onChange={(e) => setManualCountry(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded border bg-transparent font-sans"
+                  style={{ borderColor: 'var(--astra-sandstone-dark)', color: 'var(--astra-ink)' }}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="astra-label mb-1.5 block">Geopolitical Theater / Region</label>
+                <input
+                  type="text"
+                  value={manualRegion}
+                  onChange={(e) => setManualRegion(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded border bg-transparent font-sans"
+                  style={{ borderColor: 'var(--astra-sandstone-dark)', color: 'var(--astra-ink)' }}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="astra-label mb-1.5 block">Latitude (-90 to 90)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={manualLat}
+                    onChange={(e) => setManualLat(parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 text-xs rounded border bg-transparent font-mono"
+                    style={{ borderColor: 'var(--astra-sandstone-dark)', color: 'var(--astra-ink)' }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="astra-label mb-1.5 block">Longitude (-180 to 180)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={manualLon}
+                    onChange={(e) => setManualLon(parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 text-xs rounded border bg-transparent font-mono"
+                    style={{ borderColor: 'var(--astra-sandstone-dark)', color: 'var(--astra-ink)' }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="astra-label mb-1.5 block">Severity Rating</label>
+                  <select
+                    value={manualSeverity}
+                    onChange={(e) => setManualSeverity(e.target.value as any)}
+                    className="w-full px-3 py-2 text-xs rounded border bg-transparent font-sans"
+                    style={{ borderColor: 'var(--astra-sandstone-dark)', color: 'var(--astra-ink)' }}
+                  >
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="elevated">Elevated</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="info">Info</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="astra-label mb-1.5 block">
+                    Confidence ({Math.round(manualConfidence * 100)}%)
+                  </label>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="1.0"
+                    step="0.01"
+                    value={manualConfidence}
+                    onChange={(e) => setManualConfidence(parseFloat(e.target.value))}
+                    className="w-full mt-2"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="astra-label mb-1.5 block">Affected Financial Assets (comma-separated)</label>
+                <input
+                  type="text"
+                  value={manualAssets}
+                  onChange={(e) => setManualAssets(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded border bg-transparent font-mono"
+                  style={{ borderColor: 'var(--astra-sandstone-dark)', color: 'var(--astra-ink)' }}
+                  placeholder="e.g. SPX, BRENT, VIX, CONTAINER_SCFI"
+                />
+              </div>
+
+              <div>
+                <label className="astra-label mb-1.5 block">Affected Commodities (comma-separated)</label>
+                <input
+                  type="text"
+                  value={manualCommodities}
+                  onChange={(e) => setManualCommodities(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded border bg-transparent font-mono"
+                  style={{ borderColor: 'var(--astra-sandstone-dark)', color: 'var(--astra-ink)' }}
+                  placeholder="e.g. BRENT_CRUDE, LNG, COPPER, WHEAT"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="astra-label mb-1.5 block">Transmission Chain (use &apos;→&apos; or &apos;-&gt;&apos; separator)</label>
               <input
-                type="file"
-                className="hidden"
-                accept=".pdf,.png,.jpg,.jpeg,.csv"
-                onChange={handleFileUpload}
+                type="text"
+                value={manualTransmission}
+                onChange={(e) => setManualTransmission(e.target.value)}
+                className="w-full px-3 py-2 text-xs rounded border bg-transparent font-mono"
+                style={{ borderColor: 'var(--astra-sandstone-dark)', color: 'var(--astra-ink)' }}
+                placeholder="e.g. Maritime Interdiction -> Bunker Fuel Surcharge -> Transshipment Bottlenecks -> SPX Drag"
               />
-            </label>
-            <span
-              className="flex items-center gap-1.5"
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize:   '0.6875rem',
-                color:      'var(--astra-slate)',
-              }}
-            >
-              <FileText className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--agni-copper)' }} />
-              {uploadStatus}
-            </span>
-          </div>
+            </div>
 
-          <button
-            onClick={handleExecute}
-            disabled={isLoading}
-            className="btn-primary"
-            aria-busy={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>Executing Agent…</span>
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 fill-current" />
-                <span>Execute Autonomous Workflow</span>
-              </>
+            <div>
+              <label className="astra-label mb-1.5 block">Factual Intelligence Briefing</label>
+              <textarea
+                rows={3}
+                value={manualDesc}
+                onChange={(e) => setManualDesc(e.target.value)}
+                className="intel-textarea"
+                placeholder="Enter detailed intelligence commentary and verifiable evidence..."
+                required
+              />
+            </div>
+
+            {eventSubmitStatus && (
+              <div
+                className="p-3 rounded border text-xs font-mono flex items-start gap-2.5"
+                style={{
+                  background: 'rgba(34, 197, 94, 0.08)',
+                  borderColor: 'rgba(34, 197, 94, 0.3)',
+                  color: 'var(--astra-ink)',
+                }}
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 leading-relaxed">
+                  <span className="font-semibold text-emerald-700">Success: </span>
+                  {eventSubmitStatus}
+                </div>
+              </div>
             )}
-          </button>
-        </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-[11px] font-mono text-astra-slate">
+                Canonical Pydantic v2 validation · Deterministic scoring · Point-in-time recorded
+              </span>
+              <button
+                type="submit"
+                disabled={isSubmittingEvent}
+                className="btn-primary"
+              >
+                {isSubmittingEvent ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Propagating Shock…</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4 fill-current text-agni-copper" />
+                    <span>Inject & Propagate Geo-Shock</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        )}
 
         {/* ── Active Loading State (Section 19) ─────────── */}
         {isLoading && (

@@ -73,6 +73,49 @@ ANALYST DECISION & AUDITED DELIVERABLE
 
 ---
 
+## Quantitative Research & Risk Engine Architecture
+
+AGNI combines a **Geo-Shock Transmission Engine** and a **Conditional Stress-Scenario Generator** to model how geopolitical events, macroeconomic variables, and logistics chokepoints transmit systemic risk into financial assets and commodity markets.
+
+### 1. Canonical Entity Schemas
+All data ingested or manually authored conforms to 17 strict Pydantic v2 canonical schemas (`backend/app/schemas/canonical.py`):
+- **Geopolitical & Geospatial:** `Event`, `Country`, `Chokepoint`, `TradeRoute`, `Commodity`, `FinancialAsset`.
+- **Explainable Risk Transmission:** `RiskSignal`, `RiskSignalComponent`, `TransmissionLink`.
+- **Econometric & Stress Testing:** `MarketObservation`, `MacroObservation`, `Scenario`, `ScenarioShock`, `Forecast`, `ForecastDistribution`, `RegimeState`, `BacktestResult`, `Evidence`.
+
+### 2. Point-in-Time Columnar Time-Series (DuckDB + Polars)
+- High-performance analytical engine with strict point-in-time filtering (`available_at <= query_timestamp`) to mathematically eliminate lookahead data leakage in retrospective backtests.
+- Parquet partition-aware queries with zero-copy interoperability via Apache Arrow (`pyarrow`).
+
+### 3. Econometric Baselines & Markov Switching Regimes
+- **Baselines:** Classical statistical models including Naive drift, ARIMA ($p, d, q$) via `statsmodels`, and GARCH ($1, 1$) volatility clustering via `arch`.
+- **Regimes:** 2-regime Hamilton Markov Switching Autoregressive model categorizing volatility dynamics into `CALM`, `ELEVATED`, `STRESSED`, and `CRISIS` regimes with transition probability matrices.
+
+### 4. Directed Dynamic Risk Graph Topology
+- NetworkX directed acyclic graph modeling multi-hop shock cascades:
+  $$\text{Country} \longrightarrow \text{Chokepoint} \longrightarrow \text{Commodity} \longrightarrow \text{Financial Asset} \longrightarrow \text{Macro Volatility}$$
+- Computes betweenness centrality, shortest shock propagation paths, and topological impact reachability.
+
+### 5. Multi-Horizon Event-Conditioned Probabilistic Forecasting
+- Quantile predictions across $1\text{D}, 7\text{D}, 30\text{D}, 90\text{D}$ horizons.
+- Evaluates threshold breach probabilities (e.g., $P(\text{Drawdown} > 5\%)$).
+- **Split-Conformal Calibration:** Non-parametric conformal inference generating calibrated prediction bands with exact finite-sample coverage guarantees ($1 - \alpha$).
+
+### 6. Conditional Stress Scenario Engine
+- Simulates joint multi-asset shock distributions under Base, Adverse, Severe, and Custom crisis scenarios.
+- Computes Portfolio Value-at-Risk ($\text{VaR}_{95}$) and Expected Shortfall ($\text{CVaR}_{95}$ / $\text{ES}_{95}$):
+  $$\text{VaR}_{95} = \min\left(-0.85, \sum w_i s_i \cdot M_{\text{regime}}\right), \quad \text{ES}_{95} = 1.45 \cdot \text{VaR}_{95}$$
+
+### 7. Rolling-Origin Backtesting & Kupiec POF Test
+- Continuous out-of-sample backtesting computing MAE, RMSE, MASE, Pinball Loss (Quantiles), and Continuous Ranked Probability Score (CRPS).
+- Evaluates coverage adequacy via Kupiec Proportion of Failures (POF) likelihood ratio test with asymptotic $\chi^2(1)$ distribution $p$-values.
+
+### 8. Manual-First Analyst Studio
+- Full manual workflow: Analysts can inject custom shock events, configure sovereign actors, coordinates, severities, and transmission chains directly via the UI or REST APIs (`POST /api/events`).
+- Newly created events automatically trigger deterministic risk scoring and instantly appear as active pins on the D3 Equal Earth Global Signal Field.
+
+---
+
 ## System Flow
 
 The autonomous reasoning pipeline follows an 8-stage deterministic execution lifecycle:

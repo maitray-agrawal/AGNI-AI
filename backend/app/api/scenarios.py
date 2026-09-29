@@ -11,6 +11,8 @@ from datetime import datetime
 from backend.app.schemas.canonical import Scenario, ScenarioShock
 from backend.app.repositories.intel_store import intel_store
 
+from agni.scenarios.stress_engine import StressScenarioGenerator
+
 router = APIRouter(prefix="/scenarios", tags=["Scenarios"])
 
 
@@ -48,24 +50,20 @@ async def run_scenario(scenario_id: str) -> Dict[str, Any]:
 
     regime = intel_store.get_regime_state()
 
-    # Calculate transmission impact
-    simulated_impacts = []
-    for shock in scen.shocks:
-        simulated_impacts.append({
-            "target": shock.target,
-            "projected_shock_pct": shock.shock_pct,
-            "confidence_interval": shock.confidence_interval,
-            "regime_amplified": regime.current_regime in ["ELEVATED", "STRESSED", "CRISIS"],
-        })
+    var_95, es_95, detailed_shocks = StressScenarioGenerator.simulate_joint_shocks(
+        scenario_type=scen.scenario_type,
+        shocks=scen.shocks,
+        regime=regime.current_regime,
+    )
 
     return {
         "scenario_id": scen.scenario_id,
         "name": scen.name,
         "status": "completed",
         "current_regime": regime.current_regime,
-        "var_95_portfolio_impact": scen.var_95_portfolio_impact,
-        "expected_shortfall_95": scen.expected_shortfall_95,
-        "asset_shock_distribution": simulated_impacts,
+        "var_95_portfolio_impact": var_95,
+        "expected_shortfall_95": es_95,
+        "asset_shock_distribution": detailed_shocks,
         "affected_regions": scen.affected_regions,
         "affected_assets": scen.affected_assets,
         "computed_at": datetime.utcnow().isoformat(),
