@@ -29,7 +29,7 @@
 - **Resolution:** Terminated conflicting processes, bound AGNI-AI FastAPI backend cleanly to `127.0.0.1:8000`, launched Vite frontend on `127.0.0.1:5173`, and validated full browser end-to-end task execution.
 
 ### Fix-4: Product Identity & AstraX Realignment
-- Removed all hackathon/SIH (Smart India Hackathon, SIH 2025/2026, Problem Statement 26117) terminology from all user-facing documentation, frontend UI headers, footers, backend metadata, and demo scripts.
+- Removed all legacy prototype terminology from all user-facing documentation, frontend UI headers, footers, backend metadata, and demo scripts.
 - Positioned AGNI-AI as an independent product within the **AstraX** project family.
 
 ---

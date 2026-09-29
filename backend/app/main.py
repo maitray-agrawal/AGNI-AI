@@ -11,6 +11,13 @@ from backend.app.api.tasks import router as tasks_router
 from backend.app.api.files import router as files_router
 from backend.app.api.outputs import router as outputs_router
 from backend.app.api.security import router as security_router
+from backend.app.api.signals import router as signals_router
+from backend.app.api.events import router as events_router
+from backend.app.api.regimes import router as regimes_router
+from backend.app.api.scenarios import router as scenarios_router
+from backend.app.api.forecasts import router as forecasts_router
+from backend.app.api.graph import router as graph_router
+from backend.app.api.research import router as research_router
 
 # Configure logging
 logging.basicConfig(
@@ -59,6 +66,13 @@ app.include_router(tasks_router, prefix="/api", tags=["Tasks"])
 app.include_router(files_router, prefix="/api", tags=["Files"])
 app.include_router(outputs_router, prefix="/api", tags=["Outputs"])
 app.include_router(security_router, prefix="/api", tags=["Security"])
+app.include_router(signals_router, prefix="/api", tags=["Signals"])
+app.include_router(events_router, prefix="/api", tags=["Events"])
+app.include_router(regimes_router, prefix="/api", tags=["Regimes"])
+app.include_router(scenarios_router, prefix="/api", tags=["Scenarios"])
+app.include_router(forecasts_router, prefix="/api", tags=["Forecasts"])
+app.include_router(graph_router, prefix="/api", tags=["Graph"])
+app.include_router(research_router, prefix="/api", tags=["Research"])
 
 
 @app.get("/")
