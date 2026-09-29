@@ -92,3 +92,21 @@ async def list_model_cards() -> List[Dict[str, Any]]:
             "limitations": "Requires at least 20 trading days of contiguous cross-asset telemetry for reliable state convergence.",
         },
     ]
+
+
+direct_router = APIRouter(tags=["Research Direct"])
+
+
+@direct_router.get("/backtests", response_model=List[BacktestResult])
+async def list_backtests_direct():
+    """Top-level alias for retrieving rolling-origin model backtests."""
+    return intel_store.list_backtests()
+
+
+@direct_router.get("/evidence", response_model=List[Evidence])
+async def list_evidence_direct():
+    """Top-level alias for retrieving logged evidence entities and epistemic states."""
+    evidences: List[Evidence] = []
+    for evt in intel_store.list_events():
+        evidences.extend(evt.evidence)
+    return evidences

@@ -13,6 +13,7 @@ import { LiveSignals }         from './components/LiveSignals';
 import { WhyThisMatters }      from './components/WhyThisMatters';
 import { EconomicPressure }    from './components/EconomicPressure';
 import { ScenarioOutlook }     from './components/ScenarioOutlook';
+import { InteractiveKnowledgeGraph } from './components/InteractiveKnowledgeGraph';
 import { AstraMark }           from './components/AstraMark';
 import { SectionRule }         from './components/AstraShared';
 import { AgniLogo }            from './brand/AgniLogo';
@@ -77,15 +78,33 @@ export const App: React.FC = () => {
     ? latestResponse.retrieved_citations
     : citations;
 
+  const handleNavItemSelect = (id: string) => {
+    setActiveNavItem(id);
+    const targetMap: Record<string, string> = {
+      workbench: 'section-workbench',
+      monitor: 'section-monitor',
+      geopolitics: 'section-geopolitics',
+      economics: 'section-economics',
+      risk: 'section-geopolitics',
+      scenarios: 'section-scenarios',
+      graph: 'section-graph',
+      reports: 'section-evidence',
+      datasources: 'section-evidence',
+    };
+    const targetId = targetMap[id];
+    if (targetId) {
+      const el = document.getElementById(targetId);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (typeof window !== 'undefined' && window.innerWidth < 768) setSidebarOpen(false);
+  };
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--astra-ivory)', color: 'var(--astra-ink)' }}>
       {/* ── Sidebar ─────────────────────────────────────────────── */}
       <AstraSidebar
         activeItem={activeNavItem}
-        onItemSelect={(id) => {
-          setActiveNavItem(id);
-          if (typeof window !== 'undefined' && window.innerWidth < 768) setSidebarOpen(false);
-        }}
+        onItemSelect={handleNavItemSelect}
         isOpen={sidebarOpen}
       />
 
@@ -134,13 +153,13 @@ export const App: React.FC = () => {
           <IntelligenceHero newSignals={7} signalCount={1284} />
 
           {/* ── 02. GLOBAL SITUATION ─────────────────────────── */}
-          <div>
+          <div id="section-monitor">
             <SectionRule number="01" title="Global Situation" />
             <GlobalSignalField liveCount={7} />
           </div>
 
           {/* ── 03. WHAT IS CHANGING ─────────────────────────── */}
-          <div>
+          <div id="section-geopolitics">
             <SectionRule number="02" title="What Is Changing" />
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
               <div className="lg:col-span-7">
@@ -159,20 +178,26 @@ export const App: React.FC = () => {
           </div>
 
           {/* ── 05. ECONOMIC PRESSURE ────────────────────────── */}
-          <div>
+          <div id="section-economics">
             <SectionRule number="04" title="Economic Pressure" />
             <EconomicPressure />
           </div>
 
           {/* ── 06. SCENARIO OUTLOOK ─────────────────────────── */}
-          <div>
+          <div id="section-scenarios">
             <SectionRule number="05" title="Scenario Outlook" />
             <ScenarioOutlook />
           </div>
 
-          {/* ── 07. INTELLIGENCE WORKBENCH ───────────────────── */}
-          <div>
-            <SectionRule number="06" title="Intelligence Workbench" />
+          {/* ── 07. TRANSMISSION GRAPH & CAUSAL CASCADES ─────── */}
+          <div id="section-graph">
+            <SectionRule number="06" title="Transmission Graph & Causal Cascades" />
+            <InteractiveKnowledgeGraph />
+          </div>
+
+          {/* ── 08. INTELLIGENCE WORKBENCH ───────────────────── */}
+          <div id="section-workbench">
+            <SectionRule number="07" title="Intelligence Workbench" />
             <InspectionWorkbench
               onTaskCompleted={handleTaskCompleted}
               isLoading={isLoading}
@@ -186,9 +211,9 @@ export const App: React.FC = () => {
             <DeliverablesPanel outputs={latestResponse.outputs} />
           )}
 
-          {/* ── 08. EVIDENCE & SOVEREIGNTY ───────────────────── */}
-          <div>
-            <SectionRule number="07" title="Evidence & Sovereignty" />
+          {/* ── 09. EVIDENCE & SOVEREIGNTY ───────────────────── */}
+          <div id="section-evidence">
+            <SectionRule number="08" title="Evidence & Sovereignty" />
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
               <div className="lg:col-span-7 space-y-5">
                 <ExecutionTrace

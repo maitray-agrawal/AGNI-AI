@@ -17,7 +17,7 @@ from backend.app.api.regimes import router as regimes_router
 from backend.app.api.scenarios import router as scenarios_router
 from backend.app.api.forecasts import router as forecasts_router
 from backend.app.api.graph import router as graph_router
-from backend.app.api.research import router as research_router
+from backend.app.api.research import router as research_router, direct_router as research_direct_router
 from backend.app.api.satellite import router as satellite_router
 
 # Configure logging
@@ -74,6 +74,7 @@ app.include_router(scenarios_router, prefix="/api", tags=["Scenarios"])
 app.include_router(forecasts_router, prefix="/api", tags=["Forecasts"])
 app.include_router(graph_router, prefix="/api", tags=["Graph"])
 app.include_router(research_router, prefix="/api", tags=["Research"])
+app.include_router(research_direct_router, prefix="/api", tags=["Research Direct"])
 app.include_router(satellite_router, prefix="/api", tags=["Earth Observation (Satellite)"])
 
 
