@@ -4,7 +4,7 @@ import { feature, mesh } from 'topojson-client';
 import { X, Globe2, Radio, Compass, ShieldAlert, ArrowUpRight } from 'lucide-react';
 import worldData from '../data/world-110m.json';
 import { useAstraTheme } from '../brand/AstraThemeContext';
-import { fetchEvents } from '../api/client';
+import { fetchEvents, fetchSignal, fetchEventIntelligence } from '../api/client';
 
 /* ──────────────────────────────────────────────────────────────────
    GlobalSignalField — AGNI Geopolitical & Maritime Intelligence Map
@@ -242,8 +242,43 @@ export const GlobalSignalField: React.FC<{ className?: string; liveCount?: numbe
 
   const [signalsList, setSignalsList] = useState<GeopoliticalSignal[]>(REAL_SIGNALS);
   const [activeSignal, setActiveSignal] = useState<GeopoliticalSignal | null>(null);
+  const [backendDossier, setBackendDossier] = useState<any | null>(null);
+  const [isLoadingBackend, setIsLoadingBackend] = useState<boolean>(false);
   const [hoveredSignal, setHoveredSignal] = useState<GeopoliticalSignal | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+
+  const handleSelectSignal = async (sig: GeopoliticalSignal) => {
+    setActiveSignal(sig);
+    setBackendDossier(null);
+    setIsLoadingBackend(true);
+    try {
+      // 1. Try fetching full EventIntelligenceResult
+      try {
+        const intel = await fetchEventIntelligence(sig.id);
+        if (intel && (intel.risk_score || intel.transmission_path)) {
+          setBackendDossier(intel);
+          return;
+        }
+      } catch (err) {
+        // Fallback to direct signal endpoint
+      }
+
+      // 2. Try fetching canonical RiskSignal
+      try {
+        const sigObj = await fetchSignal(sig.id);
+        if (sigObj && (sigObj.risk_score || sigObj.transmission_path)) {
+          setBackendDossier(sigObj);
+          return;
+        }
+      } catch (err) {
+        // Fallback: try with sig- prefix or event- prefix
+      }
+    } catch (err) {
+      console.warn('Real backend object fetch failed, using mapped signal:', err);
+    } finally {
+      setIsLoadingBackend(false);
+    }
+  };
 
   const loadLiveSignals = async () => {
     try {
@@ -490,7 +525,7 @@ export const GlobalSignalField: React.FC<{ className?: string; liveCount?: numbe
               <g
                 key={sig.id}
                 className="cursor-pointer transition-transform duration-200"
-                onClick={() => setActiveSignal(sig)}
+                onClick={() => handleSelectSignal(sig)}
                 onMouseEnter={(e) => {
                   setHoveredSignal(sig);
                   const rect = e.currentTarget.getBoundingClientRect();
@@ -611,10 +646,14 @@ export const GlobalSignalField: React.FC<{ className?: string; liveCount?: numbe
                     }}
                   />
                   <div className="min-w-0">
+                    <div className="text-[9px] font-mono uppercase tracking-widest text-[#9E9689] font-semibold mb-0.5">
+                      EVENT
+                    </div>
                     <h4 className="font-serif font-bold text-base sm:text-[17px] text-[#F7F4EE] leading-snug tracking-tight truncate">
                       {activeSignal.name}
                     </h4>
                     <div className="font-sans text-[11px] text-[#9E9689] mt-0.5 flex items-center gap-1.5">
+                      <span className="font-mono text-[9px] text-stone-500 font-semibold uppercase">LOCATION:</span>
                       <span>{activeSignal.country}</span>
                       <span className="text-stone-600">·</span>
                       <span>{activeSignal.region}</span>
@@ -623,7 +662,7 @@ export const GlobalSignalField: React.FC<{ className?: string; liveCount?: numbe
                 </div>
 
                 <button
-                  onClick={() => setActiveSignal(null)}
+                  onClick={() => { setActiveSignal(null); setBackendDossier(null); }}
                   className="p-1 rounded-md text-stone-400 hover:text-stone-200 hover:bg-white/[0.08] transition-colors shrink-0 -mr-1 -mt-1"
                   aria-label="Close dossier"
                 >
@@ -634,8 +673,8 @@ export const GlobalSignalField: React.FC<{ className?: string; liveCount?: numbe
 
             {/* Structured Intelligence Body */}
             <div className="px-4 sm:px-5 py-3.5 space-y-3.5 overflow-y-auto flex-1 custom-scrollbar">
-              {/* Coordinates Chip & Category Pill */}
-              <div className="flex items-center justify-between gap-2 text-[10px] font-mono">
+              {/* Row 1: Coordinates, Severity & Confidence */}
+              <div className="flex items-center justify-between gap-2 text-[10px] font-mono flex-wrap">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-black/40 border border-white/[0.08] text-stone-300">
                   <span className="text-stone-500 font-semibold">LAT:</span>
                   <span>{activeSignal.latitude >= 0 ? `${activeSignal.latitude.toFixed(2)}°N` : `${Math.abs(activeSignal.latitude).toFixed(2)}°S`}</span>
@@ -643,9 +682,42 @@ export const GlobalSignalField: React.FC<{ className?: string; liveCount?: numbe
                   <span className="text-stone-500 font-semibold">LON:</span>
                   <span>{activeSignal.longitude >= 0 ? `${activeSignal.longitude.toFixed(2)}°E` : `${Math.abs(activeSignal.longitude).toFixed(2)}°W`}</span>
                 </div>
-                <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wider text-[#C86D3C] bg-[#C86D3C]/10 border border-[#C86D3C]/25">
-                  {activeSignal.category}
+
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className="font-mono text-[9px] uppercase font-bold px-2 py-0.5 rounded border"
+                    style={{
+                      color: SEVERITY_COLORS[activeSignal.severity].fill,
+                      borderColor: `${SEVERITY_COLORS[activeSignal.severity].fill}40`,
+                      backgroundColor: `${SEVERITY_COLORS[activeSignal.severity].fill}15`,
+                    }}
+                  >
+                    SEVERITY: {(backendDossier?.risk_level || activeSignal.severity).toUpperCase()}
+                  </span>
+
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-black/40 border border-white/[0.08] text-stone-300">
+                    <span className="text-stone-500 font-semibold text-[9px]">CONFIDENCE:</span>
+                    <span className="font-bold text-stone-200">
+                      {Math.round((backendDossier?.confidence ?? (activeSignal.signalCount >= 10 ? 0.94 : 0.88)) * 100)}%
+                    </span>
+                  </div>
                 </div>
+              </div>
+
+              {/* Row 2: Risk Type Pill */}
+              <div className="flex items-center justify-between text-[10px] font-mono">
+                <div className="inline-flex items-center gap-1.5 text-stone-400">
+                  <span className="text-stone-500 font-semibold">RISK TYPE:</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded font-mono font-semibold uppercase tracking-wider text-[#C86D3C] bg-[#C86D3C]/10 border border-[#C86D3C]/25">
+                    {activeSignal.category}
+                  </span>
+                </div>
+                {backendDossier?.risk_score != null && (
+                  <div className="text-[10px] font-mono text-stone-300">
+                    <span className="text-stone-500 font-semibold mr-1">CALCULATED SCORE:</span>
+                    <span className="font-bold text-[#D49A3D]">{backendDossier.risk_score.toFixed(1)}/100</span>
+                  </div>
+                )}
               </div>
 
               {/* Elevated Inset Surface: Primary Signal / Headline */}
@@ -670,22 +742,52 @@ export const GlobalSignalField: React.FC<{ className?: string; liveCount?: numbe
               <div className="space-y-1.5">
                 <div className="font-mono text-[9px] tracking-widest uppercase text-stone-400 font-bold flex items-center gap-1.5">
                   <span className="text-stone-500">01 /</span>
-                  <span>TACTICAL INTELLIGENCE BRIEF</span>
+                  <span>TACTICAL INTELLIGENCE</span>
                 </div>
-                <p className="text-[12px] text-stone-300 leading-relaxed font-sans bg-black/25 p-2.5 rounded border border-white/[0.05]">
-                  {activeSignal.intelligenceBrief}
-                </p>
+                <div className="text-[12px] text-stone-300 leading-relaxed font-sans bg-black/25 p-2.5 rounded border border-white/[0.05] space-y-1.5">
+                  <p>{activeSignal.intelligenceBrief}</p>
+                  {backendDossier?.drivers && backendDossier.drivers.length > 0 && (
+                    <div className="pt-1.5 border-t border-white/[0.05] space-y-1">
+                      <div className="text-[9px] font-mono text-[#D49A3D] uppercase font-bold tracking-wider">
+                        EXPLICIT DRIVERS:
+                      </div>
+                      {backendDossier.drivers.slice(0, 2).map((d: string, idx: number) => (
+                        <div key={idx} className="text-[11px] text-stone-300 flex items-start gap-1.5">
+                          <span className="text-[#D49A3D] font-mono text-[10px]">›</span>
+                          <span>{d}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Field 02: Strategic Chokepoint Impact */}
+              {/* Field 02: Strategic Chokepoint & Transmission Impact */}
               <div className="space-y-1.5">
                 <div className="font-mono text-[9px] tracking-widest uppercase text-[#C86D3C] font-bold flex items-center gap-1.5">
                   <span className="text-[#C86D3C]/60">02 /</span>
-                  <span>STRATEGIC CHOKEPOINT IMPACT</span>
+                  <span>TRANSMISSION IMPACT</span>
                 </div>
-                <p className="text-[12px] text-stone-300 leading-relaxed font-sans bg-black/25 p-2.5 rounded border border-[#C86D3C]/20">
-                  {activeSignal.strategicImpact}
-                </p>
+                <div className="text-[12px] text-stone-300 leading-relaxed font-sans bg-black/25 p-2.5 rounded border border-[#C86D3C]/20 space-y-1.5">
+                  {backendDossier?.transmission_path && backendDossier.transmission_path.length > 0 ? (
+                    <div className="space-y-1">
+                      <div className="text-[9.5px] font-mono text-[#C86D3C] font-semibold">
+                        {backendDossier.transmission_path.slice(0, 3).map((l: any, i: number) => (
+                          <span key={i}>
+                            {i > 0 && ' → '}
+                            <span className="text-stone-200">{l.from_node}</span>
+                          </span>
+                        ))}
+                        {' → '}<span className="text-stone-200">{backendDossier.transmission_path[Math.min(2, backendDossier.transmission_path.length - 1)].to_node}</span>
+                      </div>
+                      <p className="text-[11.5px] text-stone-300">
+                        {backendDossier.transmission_path[0].explanation || activeSignal.strategicImpact}
+                      </p>
+                    </div>
+                  ) : (
+                    <p>{activeSignal.strategicImpact}</p>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -701,7 +803,9 @@ export const GlobalSignalField: React.FC<{ className?: string; liveCount?: numbe
               <div className="flex items-center gap-1.5 text-stone-300">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                 <span className="text-stone-400 text-[9px] uppercase tracking-wider">STATUS:</span>
-                <span className="font-semibold text-[#C86D3C] tracking-wide">MONITORED</span>
+                <span className="font-semibold text-[#C86D3C] tracking-wide">
+                  {backendDossier ? 'VERIFIED' : 'MONITORED'}
+                </span>
               </div>
             </div>
           </div>

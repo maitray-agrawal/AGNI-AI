@@ -16,7 +16,7 @@ Every entity features:
 
 from typing import List, Dict, Any, Optional, Literal
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -36,12 +36,14 @@ EventType = Literal[
     "financial_stress",
     "natural_hazard",
     "infrastructure_disruption",
+    "geopolitical_escalation",
     "other",
 ]
 
 SeverityLevel = Literal["critical", "high", "elevated", "moderate", "low", "info"]
 
 EvidenceState = Literal["OBSERVED", "DERIVED", "MODELLED", "SCENARIO"]
+EpistemicState = EvidenceState
 
 RegimeType = Literal["CALM", "ELEVATED", "STRESSED", "CRISIS"]
 
@@ -134,9 +136,9 @@ class FinancialAsset(BaseModel):
 class Event(BaseModel):
     event_id: str = Field(..., description="Stable unique UUID or identifier")
     timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
-    event_type: EventType
+    event_type: EventType = Field("geopolitical_escalation", description="Taxonomic classification")
     title: str = Field(..., min_length=3, description="Crisp descriptive headline")
-    description: str = Field(..., description="Detailed factual intelligence briefing")
+    description: str = Field("", description="Detailed factual intelligence briefing")
     country: str = Field(..., description="Primary affected country or sovereign actor")
     region: str = Field(..., description="Geopolitical theater")
     latitude: float = Field(..., ge=-90.0, le=90.0)
@@ -193,14 +195,25 @@ class MacroObservation(BaseModel):
 
 class RiskSignalComponent(BaseModel):
     """Component-level explainable decomposition of a risk signal."""
-    event_intensity: float = Field(..., ge=0.0, le=100.0)
-    market_sensitivity: float = Field(..., ge=0.0, le=100.0)
-    country_exposure: float = Field(..., ge=0.0, le=100.0)
-    commodity_exposure: float = Field(..., ge=0.0, le=100.0)
-    route_exposure: float = Field(..., ge=0.0, le=100.0)
-    historical_response: float = Field(..., ge=0.0, le=100.0)
-    regime_multiplier: float = Field(1.0, ge=0.5, le=3.0)
-    confidence: float = Field(0.85, ge=0.0, le=1.0)
+    event_intensity: float = Field(..., ge=0.0, le=100.0, description="Direct severity magnitude (0-100)")
+    country_exposure: float = Field(..., ge=0.0, le=100.0, description="Sovereign criticality and systemic weight (0-100)")
+    commodity_exposure: float = Field(..., ge=0.0, le=100.0, description="Concentration of critical commodity flows (0-100)")
+    asset_exposure: float = Field(50.0, ge=0.0, le=100.0, description="Financial asset exposure and cross-market sensitivity (0-100)")
+    market_sensitivity: float = Field(50.0, ge=0.0, le=100.0, description="Beta/volatility responsiveness (0-100)")
+    route_exposure: float = Field(..., ge=0.0, le=100.0, description="Global trade percentage traversing affected routes (0-100)")
+    historical_response: float = Field(..., ge=0.0, le=100.0, description="Shock persistence from historical analogues (0-100)")
+    regime_multiplier: float = Field(1.0, ge=0.5, le=3.0, description="Macro volatility regime multiplier")
+    confidence: float = Field(0.85, ge=0.0, le=1.0, description="Epistemic confidence score (0-1)")
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_asset_and_market(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "asset_exposure" in data and "market_sensitivity" not in data:
+                data["market_sensitivity"] = data["asset_exposure"]
+            elif "market_sensitivity" in data and "asset_exposure" not in data:
+                data["asset_exposure"] = data["market_sensitivity"]
+        return data
 
 
 class TransmissionLink(BaseModel):
@@ -225,6 +238,23 @@ class RiskSignal(BaseModel):
     affected_commodities: List[str] = Field(default_factory=list)
     transmission_path: List[TransmissionLink] = Field(default_factory=list)
     is_demo_data: bool = False
+
+
+class EventIntelligenceResult(BaseModel):
+    """Synthesized intelligence output for an event evaluated by the risk engine."""
+    event_id: str
+    title: str = ""
+    risk_score: float = Field(..., ge=0.0, le=100.0)
+    risk_level: SeverityLevel
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    components: RiskSignalComponent
+    drivers: List[str] = Field(default_factory=list)
+    affected_assets: List[str] = Field(default_factory=list)
+    affected_commodities: List[str] = Field(default_factory=list)
+    affected_routes: List[str] = Field(default_factory=list)
+    transmission_path: List[TransmissionLink] = Field(default_factory=list)
+    epistemic_state: EpistemicState = "DERIVED"
+    calculated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
 
 # ─────────────────────────────────────────────────────────────────────────────

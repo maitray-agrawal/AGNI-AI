@@ -31,6 +31,7 @@ from backend.app.schemas.canonical import (
     RegimeType,
     AssetClass,
     ScenarioType,
+    EventIntelligenceResult,
 )
 
 __all__ = [
@@ -60,4 +61,5 @@ __all__ = [
     "RegimeType",
     "AssetClass",
     "ScenarioType",
+    "EventIntelligenceResult",
 ]

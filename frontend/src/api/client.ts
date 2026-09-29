@@ -55,9 +55,21 @@ export async function fetchSignals(): Promise<any[]> {
   return res.json();
 }
 
+export async function fetchSignal(signalId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/signals/${encodeURIComponent(signalId)}`);
+  if (!res.ok) throw new Error(`Failed to load signal ${signalId}`);
+  return res.json();
+}
+
 export async function fetchEvents(): Promise<any[]> {
   const res = await fetch(`${API_BASE}/events`);
   if (!res.ok) throw new Error('Failed to load events');
+  return res.json();
+}
+
+export async function fetchEventIntelligence(eventId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/events/${encodeURIComponent(eventId)}/intelligence`);
+  if (!res.ok) throw new Error(`Failed to load intelligence for event ${eventId}`);
   return res.json();
 }
 

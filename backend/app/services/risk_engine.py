@@ -137,21 +137,13 @@ class RiskSignalEngine:
             drivers.append(f"Amplified by prevailing {current_regime} macro volatility regime (×{regime_mult:.2f})")
 
         # Synthesize transmission path
-        transmission_path: List[TransmissionLink] = []
-        for i, ch in enumerate(event.transmission_channels[:-1]):
-            transmission_path.append(
-                TransmissionLink(
-                    from_node=ch,
-                    to_node=event.transmission_channels[i + 1],
-                    link_type="price_transmission" if i >= 1 else "geopolitical_shock",
-                    elasticity_or_beta=round(1.0 + (i * 0.35), 2),
-                    explanation=f"Transmits shocks from {ch} into {event.transmission_channels[i + 1]}",
-                )
-            )
+        from agni.events.transmission import TransmissionGenerator
+        transmission_path = TransmissionGenerator.generate_path(event)
 
         components = RiskSignalComponent(
             event_intensity=round(event_intensity, 1),
             market_sensitivity=round(market_sensitivity, 1),
+            asset_exposure=round(market_sensitivity, 1),
             country_exposure=round(country_exposure, 1),
             commodity_exposure=round(commodity_exposure, 1),
             route_exposure=round(route_exposure, 1),

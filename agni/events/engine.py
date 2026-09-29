@@ -1,92 +1,131 @@
 """
 AGNI Event Processing Engine
 ============================
-Deterministic ingestion, validation, and risk score calculation for canonical events.
+Orchestrates the complete event-to-risk intelligence pipeline:
+validate → normalize → persist → calculate features → calculate risk → construct transmission links → generate intelligence result.
 """
 
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple, Union
 from datetime import datetime, timezone
-import uuid
 
-from backend.app.schemas.canonical import (
+from agni.data.schemas import (
     Event,
     RiskSignal,
     RiskSignalComponent,
     TransmissionLink,
-    SeverityLevel,
+    EventIntelligenceResult,
+    RegimeType,
 )
-from configs.settings import research_settings
-
-
-SEVERITY_SCORES: Dict[SeverityLevel, float] = {
-    "critical": 92.0,
-    "high": 78.0,
-    "elevated": 62.0,
-    "moderate": 44.0,
-    "low": 25.0,
-    "info": 10.0,
-}
+from agni.events.ingestion import EventIngestionService
+from agni.events.features import FeatureCalculator
+from agni.events.risk_scorer import ExplainableRiskScorer
+from agni.events.transmission import TransmissionGenerator
 
 
 class EventProcessingEngine:
-    """Processes canonical geopolitical events into deterministic risk signals."""
+    """Core intelligence engine executing the full event evaluation workflow."""
 
-    @staticmethod
-    def process_event(event: Event) -> RiskSignal:
-        """Calculates deterministic composite risk score and transmission links."""
-        base_score = SEVERITY_SCORES.get(event.severity, 50.0)
-        calibrated_score = round(base_score * event.confidence, 1)
+    @classmethod
+    def evaluate_and_generate_intelligence(
+        cls,
+        event: Event,
+        current_regime: RegimeType = "ELEVATED",
+    ) -> Tuple[RiskSignal, EventIntelligenceResult]:
+        """
+        Executes analytical steps:
+        1. Calculate features (8 explicit factors)
+        2. Calculate risk (explainable linear scoring + regime adjustment)
+        3. Construct transmission links (causal multi-hop path)
+        4. Assemble canonical RiskSignal and EventIntelligenceResult
+        """
+        # 1. Calculate features
+        components: RiskSignalComponent = FeatureCalculator.calculate_components(
+            event=event,
+            current_regime=current_regime,
+        )
 
-        # Build components
-        components: List[RiskSignalComponent] = [
-            RiskSignalComponent(
-                component_name="Severity Weight",
-                weight=0.45,
-                raw_score=base_score,
-                weighted_contribution=round(base_score * 0.45, 1),
-                description=f"Direct severity ranking: {event.severity.upper()}",
-            ),
-            RiskSignalComponent(
-                component_name="Epistemic Confidence",
-                weight=0.30,
-                raw_score=event.confidence * 100,
-                weighted_contribution=round(event.confidence * 30.0, 1),
-                description=f"Source reliability and verification confidence ({event.confidence:.0%})",
-            ),
-            RiskSignalComponent(
-                component_name="Exposure Breadth",
-                weight=0.25,
-                raw_score=min(100.0, float(len(event.affected_assets) + len(event.affected_commodities)) * 25.0),
-                weighted_contribution=round(min(25.0, float(len(event.affected_assets) + len(event.affected_commodities)) * 6.25), 1),
-                description="Cross-asset & commodity exposure breadth",
-            ),
-        ]
+        # 2. Calculate risk score & explanatory drivers
+        risk_score, risk_level, drivers = ExplainableRiskScorer.compute_score(components)
 
-        # Build sequential transmission links
-        transmission_links: List[TransmissionLink] = []
-        channels = event.transmission_channels or ["Sovereign Disruption", "Market Volatility"]
-        for i in range(len(channels) - 1):
-            transmission_links.append(
-                TransmissionLink(
-                    source=channels[i],
-                    target=channels[i + 1],
-                    weight=round(0.95 - (i * 0.08), 2),
-                    confidence=event.confidence,
-                    evidence_state="DERIVED",
-                )
-            )
+        # 3. Construct transmission links
+        transmission_path: list[TransmissionLink] = TransmissionGenerator.generate_path(event)
 
-        return RiskSignal(
+        # 4. Canonical RiskSignal model
+        signal = RiskSignal(
             signal_id=f"sig-{event.event_id}",
             event_id=event.event_id,
             timestamp=event.timestamp or datetime.now(timezone.utc).isoformat(),
-            title=f"Risk Signal: {event.title}",
-            composite_score=min(100.0, max(0.0, calibrated_score)),
-            risk_level=event.severity,
-            primary_region=event.region,
-            latitude=event.latitude,
-            longitude=event.longitude,
+            risk_score=risk_score,
+            risk_level=risk_level,
+            confidence=components.confidence,
             components=components,
-            transmission_path=transmission_links,
+            drivers=drivers,
+            affected_regions=[event.region],
+            affected_assets=event.affected_assets,
+            affected_commodities=event.affected_commodities,
+            transmission_path=transmission_path,
             is_demo_data=event.is_demo_data,
         )
+
+        # 5. Synthesized EventIntelligenceResult model
+        intel_result = EventIntelligenceResult(
+            event_id=event.event_id,
+            title=event.title,
+            risk_score=risk_score,
+            risk_level=risk_level,
+            confidence=components.confidence,
+            components=components,
+            drivers=drivers,
+            affected_assets=event.affected_assets,
+            affected_commodities=event.affected_commodities,
+            affected_routes=event.affected_routes,
+            transmission_path=transmission_path,
+            epistemic_state="DERIVED",
+            calculated_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+        return (signal, intel_result)
+
+    @classmethod
+    def process_event(
+        cls,
+        payload: Union[Dict[str, Any], Event],
+        persist: bool = True,
+        current_regime: Optional[RegimeType] = None,
+    ) -> Dict[str, Any]:
+        """
+        Full AGNI manual and automated workflow:
+        CREATE EVENT → validate → normalize → persist → calculate features → calculate risk → construct transmission links → generate intelligence result.
+        """
+        # Step 1 & 2: Ingest, Validate, and Normalize
+        normalized_event: Event = EventIngestionService.ingest(payload)
+
+        # Retrieve prevailing regime
+        from backend.app.repositories.intel_store import intel_store
+        regime = current_regime or intel_store.get_regime_state().current_regime
+
+        # Step 4, 5, 6: Calculate features, risk score, and transmission path
+        signal, intel_result = cls.evaluate_and_generate_intelligence(
+            event=normalized_event,
+            current_regime=regime,
+        )
+
+        # Step 3: Persist into analytical store
+        if persist:
+            intel_store.create_event(normalized_event)
+            # Store signal into store index
+            intel_store._signals[signal.signal_id] = signal
+
+        return {
+            "event": normalized_event,
+            "signal": signal,
+            "intelligence": intel_result,
+            # Direct mapping matching the example output requested:
+            "risk_score": intel_result.risk_score,
+            "risk_level": intel_result.risk_level,
+            "confidence": intel_result.confidence,
+            "drivers": intel_result.drivers,
+            "affected_assets": intel_result.affected_assets,
+            "affected_commodities": intel_result.affected_commodities,
+            "transmission_path": [link.model_dump() for link in intel_result.transmission_path],
+        }
